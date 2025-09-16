@@ -1,0 +1,43 @@
+﻿<Page x:Class="PayorLedger.Windows.Payors.Pages.ManagePayors"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PayorLedger.Windows.Payors.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="ManagePayors">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="120"/>
+        </Grid.ColumnDefinitions>
+        <Grid
+            Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Payors" Grid.Row="0" FontSize="20" TextAlignment="Center"/>
+            <ListBox Name="UI_PayorListBox_Lbx" Margin="10" Grid.Row="1" ItemsSource="{Binding Payors}">
+            </ListBox>
+        </Grid>
+        <Border Grid.Column="1" Background="Gray"/>
+        <Grid
+            Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" Name="UI_AddPayor_Btn" Content="Add New Payor" Width="100" Height="30" Margin="10" Click="UI_AddPayor_Btn_Click"/>
+            <Button Grid.Row="1" Name="UI_EditPayor_Btn" Content="Edit Payor" Width="100" Height="30" Margin="10" Click="UI_EditPayor_Btn_Click"/>
+            <Button Grid.Row="2" Name="UI_ViewPayorBalance_Btn" Content="Payor Balance" Width="100" Height="30" Margin="10" Click="UI_ViewPayorBalance_Btn_Click"/>
+            <Button Grid.Row="3" Name="UI_DeletePayor_Btn" Content="Delete Payor" Width="100" Height="30" Margin="10" Background="Red" Click="UI_DeletePayor_Btn_Click"/>
+        </Grid>
+    </Grid>
+</Page>
