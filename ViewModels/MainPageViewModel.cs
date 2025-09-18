@@ -5,7 +5,7 @@
 //Author: John Nasitem
 //***********************************************************************************
 
-
+// TODO: Rework rows, rows should be entries, not each payor. also add date and an incrementing or#
 
 using CommunityToolkit.Mvvm.Input;
 using PayorLedger.Models;
