@@ -15,14 +15,15 @@ namespace PayorLedger.Services.Logger
 {
     public class Logger : ILogger
     {
-        private static readonly string _filePath = $"Logs/{DateTime.UtcNow.ToString("yyyy-MM-dd")}";
+        private static readonly string _filePath = $"Logs/{DateTime.UtcNow:yyyy-MM-dd}.txt";
 
 
 
         public Logger()
         {
+            Directory.CreateDirectory("Logs");
             // Create log file
-            AddLog("User openned application.", LogType.Action);
+            AddLog("User opened application.", LogType.Action);
         }
 
 
@@ -34,7 +35,7 @@ namespace PayorLedger.Services.Logger
         /// <param name="type">Type of log</param>
         public void AddLog(string message, LogType type)
         {
-            File.WriteAllText(_filePath, $"[{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}] {type.ToString().ToUpper()}: {message + Environment.NewLine}");
+            File.AppendAllText(_filePath, $"[{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}] {type.ToString().ToUpper()}: {message + Environment.NewLine}");
         }
 
 
