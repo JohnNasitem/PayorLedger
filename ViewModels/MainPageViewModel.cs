@@ -26,8 +26,8 @@ using PayorLedger.Services.Actions.CommentCommands;
 
 namespace PayorLedger.ViewModels
 {
-    public record CellEditInfo(string ColumnName, string PayorName, decimal NewValue, Month Month, int Year);
-    public record CommentEditInfo(string PayorName, string NewComment, Month Month, int Year);
+    public record CellEditInfo(string ColumnName, int OrNum, decimal NewValue, Month Month, int Year);
+    public record CommentEditInfo(int OrNum, string NewComment);
 
     public class MainPageViewModel
     {
@@ -41,8 +41,7 @@ namespace PayorLedger.ViewModels
         // Public Properties
         public int Year { get; set; }
         public List<DataColumn> TableColumns { get; private set; } = null!;
-        public List<CellEntryToRow> LedgerEntries { get; set; } = null!;
-        public List<PayorComments> LedgerComments { get; set; } = null!;
+        public List<RowEntry> LedgerRows { get; set; } = null!;
         public List<HeaderEntry> Headers { get; set; } = null!;
         public List<PayorEntry> Payors { get; set; }= null!;
 
@@ -117,34 +116,15 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void GetDatabaseValues()
         {
-            LedgerEntries = [];
-            LedgerComments = [];
+            LedgerRows = _dbService.GetRows();
 
-            (List<CellEntryToRow> entries, List<PayorComments> comments) = _dbService.GetData();
             _tabs = new ObservableCollection<MonthTab>(
                     Enum.GetValues<Month>()
                     .Cast<Month>()
                     .Select(m => new MonthTab(m)));
 
-            foreach (CellEntryToRow entry in entries)
-                LedgerEntries.Add(entry);
-
-            foreach (PayorComments comment in comments)
-                LedgerComments.Add(comment);
-
             Payors = [.. _dbService.GetPayors().OrderBy(p => p.PayorName)];
             Headers = _dbService.GetHeaders();
-        }
-
-
-
-        /// <summary>
-        /// Get all data in the view model
-        /// </summary>
-        /// <returns>Payors, headers, entries, and comments</returns>
-        public (List<PayorEntry> payors, List<HeaderEntry> headers, List<CellEntryToRow> entries, List<PayorComments> comments) GetVMData()
-        {
-            return (Payors, Headers, LedgerEntries, LedgerComments);
         }
 
 
@@ -209,9 +189,10 @@ namespace PayorLedger.ViewModels
 
             TableColumns = CreateColumns(Headers, tab.Month == Month.All);
 
-            List<CellEntryToRow> monthData = LedgerEntries.Where(e => e.Year == Year && e.State != ChangeState.Removed).Where(e => e.Month == tab.Month).ToList();
-            if (tab.Month == Month.All)
-                monthData = LedgerEntries.Where(e => e.Year == Year && e.State != ChangeState.Removed).ToList();
+            List<RowEntry> monthData = tab.Month == Month.All ?
+                LedgerRows.Where(e => e.Year == Year && e.State != ChangeState.Removed).ToList() :
+                LedgerRows.Where(e => e.Year == Year && e.Month == tab.Month && e.State != ChangeState.Removed).ToList();
+
             MonthTotal? monthTotal = _totals.FirstOrDefault(mt => mt.Month == tab.Month && mt.Year == Year);
             if (monthTotal == null)
             {
@@ -226,7 +207,7 @@ namespace PayorLedger.ViewModels
                 table.Columns.Add(col);
 
             // Add rows
-            foreach (DataRow row in CreateRows(tab, TableColumns, monthData, monthTotal, LedgerComments.Where(c => c.Month == tab.Month && c.Year == Year && c.State != ChangeState.Removed).ToList()))
+            foreach (DataRow row in CreateRows(tab, TableColumns, monthData, monthTotal))
                 table.Rows.Add(row);
         }
 
@@ -285,29 +266,28 @@ namespace PayorLedger.ViewModels
         /// <param name="columns">List of  columns</param>
         /// <param name="monthData">Cell data</param>
         /// <returns>List of rows for the DataTable</returns>
-        private List<DataRow> CreateRows(MonthTab tab, List<DataColumn> columns, List<CellEntryToRow> monthData, MonthTotal monthTotal, List<PayorComments> monthComments)
+        private List<DataRow> CreateRows(MonthTab tab, List<DataColumn> columns, List<RowEntry> monthData, MonthTotal monthTotal)
         {
             // TODO: Add date and or#
 
             List<DataRow> rows = [];
             List<SubheaderEntry> subheaders = GetSubheaders(Headers, true);
 
-            // Create rows for each payor
-            foreach (PayorEntry payor in Payors.Where(p => p.State != ChangeState.Removed))
+            // Create rows
+            foreach (RowEntry dataRow in monthData)
             {
                 DataRow row = tab.Content.NewRow();
 
                 // Initialize the row cells
                 foreach (DataColumn col in columns)
                     row[col.ColumnName] = 0;
-                row["Payor"] = payor.PayorName;
+                row["Payor"] = Payors.Find(p => p.PayorId == dataRow.PayorId)!.PayorName;
+                row["Date"] = dataRow.Date;
+                row["Or #"] = dataRow.OrNum;
 
                 // Populate the cells
-                foreach (CellEntryToRow data in monthData)
+                foreach (CellEntryToRow data in dataRow.CellEntries)
                 {
-                    if (data.PayorId != payor.PayorId)
-                        continue;
-
                     SubheaderEntry subheader = subheaders.FirstOrDefault(s => s.Id == data.SubheaderId && s.State != ChangeState.Removed)!;
 
                     string colName = $"{subheader.Header.Name}\n{subheader.Name}";
@@ -315,8 +295,8 @@ namespace PayorLedger.ViewModels
                 }
 
                 // Populate comments and total column
-                row["Total"] = monthTotal.GetPayorTotal(payor.PayorId);
-                row["Comments"] = monthComments.FirstOrDefault(c => c.PayorId == payor.PayorId)?.Comment ?? "";
+                row["Total"] = monthTotal.GetRowTotal(dataRow.OrNum);
+                row["Comments"] = dataRow.Comment;
 
                 rows.Add(row);
             }
@@ -331,6 +311,8 @@ namespace PayorLedger.ViewModels
                 totalRow[col.ColumnName] = monthTotal.GetColumnTotal(subheaders.First(s => s.Header.Name == col.ColumnName.Split('\n')[0] && s.Name == col.ColumnName.Split('\n')[1]).Id);
             }
             totalRow["Payor"] = "Total";
+            totalRow["Date"] = "";
+            totalRow["Or #"] = "";
             totalRow["Total"] = monthTotal.GetOverallTotal();
             totalRow["Comments"] = "";
             rows.Add(totalRow);
@@ -347,21 +329,21 @@ namespace PayorLedger.ViewModels
         {
             List<MonthTotal> monthTotals = [];
 
-            foreach (CellEntryToRow entry in LedgerEntries.Where(e => e.State != ChangeState.Removed))
+            foreach (CellEntryToRow entry in LedgerRows.Where(e => e.State != ChangeState.Removed).SelectMany(r => r.CellEntries).Where(e => e.State != ChangeState.Removed))
             {
                 // Get month total instance
-                MonthTotal? monthTotal = monthTotals.FirstOrDefault(mt => mt.Month == entry.Month && mt.Year == entry.Year);
+                MonthTotal? monthTotal = monthTotals.FirstOrDefault(mt => mt.Month == entry.Row.Month && mt.Year == entry.Row.Year);
 
                 // Create an instance if it doesnt exist
                 if (monthTotal == null)
                 {
-                    monthTotal = new MonthTotal(entry.Year, entry.Month);
+                    monthTotal = new MonthTotal(entry.Row.Year, entry.Row.Month);
                     monthTotals.Add(monthTotal);
                 }
 
                 // Add to totals
                 monthTotal.AddToColumnTotal(entry.SubheaderId, entry.Amount);
-                monthTotal.AddToPayorTotal(entry.PayorId, entry.Amount);
+                monthTotal.AddToRowTotal(entry.Row.OrNum, entry.Amount);
             }
 
             return monthTotals;
@@ -372,7 +354,7 @@ namespace PayorLedger.ViewModels
         /// <summary>
         /// Recalculates totals then populates the tabs with the new totals
         /// </summary>
-        public void UpdateTotals()
+        public void UpdateUI()
         {
             // Calculate totals
             _totals = CalculateTotals();
@@ -501,15 +483,14 @@ namespace PayorLedger.ViewModels
             // Extract ids from cell info
             string[] columnNameParts = cellInfo.ColumnName.Split('\n');
             long subheaderId = Headers.Find(h => h.Name == columnNameParts[0])!.Subheaders.Find(s => s.Name == columnNameParts[1])!.Id;
-            long payorId = Payors.Find(p => p.PayorName == cellInfo.PayorName)!.PayorId;
 
             // Find associated entry
-            CellEntryToRow? entry = LedgerEntries.FirstOrDefault(e => e.SubheaderId == subheaderId && e.PayorId == payorId && e.Month == cellInfo.Month && e.Year == cellInfo.Year);
+            CellEntryToRow? entry = LedgerRows.SelectMany(r => r.CellEntries).FirstOrDefault(e => e.Row.OrNum == cellInfo.OrNum);
 
             // Create a new entry if it doesn't exist
             if (entry == null)
             {
-                entry = new CellEntryToRow(subheaderId, payorId, cellInfo.NewValue, cellInfo.Month, cellInfo.Year, ChangeState.Added);
+                entry = new CellEntryToRow(LedgerRows.Find(r => r.OrNum == cellInfo.OrNum)!, subheaderId, cellInfo.NewValue, ChangeState.Added);
                 _undoRedoService.Execute(new AddCellCommand(entry));
             }
             // Delete entry if value is 0
@@ -532,24 +513,12 @@ namespace PayorLedger.ViewModels
             if (commentInfo == null)
                 return;
 
-            // Extract ids from cell info
-            long payorId = Payors.Find(p => p.PayorName == commentInfo.PayorName)!.PayorId;
+            // Find associated row
+            RowEntry entry = LedgerRows.Find(e => e.OrNum == commentInfo.OrNum)!;
 
-            // Find associated entry
-            PayorComments? entry = LedgerComments.FirstOrDefault(e => e.PayorId == payorId && e.Month == commentInfo.Month && e.Year == commentInfo.Year);
-
-            // Create a new entry if it doesn't exist
-            if (entry == null)
-            {
-                entry = new PayorComments(payorId, commentInfo.NewComment, commentInfo.Month, commentInfo.Year, ChangeState.Added);
-                LedgerComments.Add(entry);
-            }
-            // Delete entry if new value is empty
-            else if (commentInfo.NewComment == "")
-                _undoRedoService.Execute(new DeleteCommentCommand(entry));
             // Update entry
-            else
-                _undoRedoService.Execute(new EditCommentCommand(entry, commentInfo.NewComment));
+            // TODO: Change this to row edit
+            //_undoRedoService.Execute(new EditCommentCommand(entry, commentInfo.NewComment));
         }
 
 

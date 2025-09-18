@@ -14,6 +14,8 @@ using PayorLedger.Models.Columns;
 using PayorLedger.Services.Actions;
 using PayorLedger.ViewModels;
 using System.Data.SQLite;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Windows.Input;
 
 namespace PayorLedger.Services.Database
 {
@@ -105,6 +107,7 @@ namespace PayorLedger.Services.Database
                                         Date TEXT NOT NULL,
                                         OrNum INTEGER NOT NULL PRIMARY KEY,
                                         PayorId INTEGER NOT NULL,
+                                        Comment TEXT NOT NULL,
                                         Month INTEGER NOT NULL,
                                         Year INTEGER NOT NULL,
                                         FOREIGN KEY (PayorId) REFERENCES {Enum.GetName(DatabaseTables.Payor)}(PayorId)
@@ -125,21 +128,6 @@ namespace PayorLedger.Services.Database
                                         )";
                 cmd.ExecuteNonQuery();
             }
-
-            // Initialize PayorCommentTable table
-            if (!DoesTableExist(DatabaseTables.PayorComments))
-            {
-                using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-                cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS {Enum.GetName(DatabaseTables.PayorComments)}(
-                                        PayorId INTEGER NOT NULL,
-                                        Comment TEXT NOT NULL,
-                                        Month INTEGER NOT NULL,
-                                        Year INTEGER NOT NULL,
-                                        FOREIGN KEY (PayorId) REFERENCES {Enum.GetName(DatabaseTables.Payor)}(PayorId),
-                                        PRIMARY KEY (PayorId, Month, Year)
-                                        )";
-                cmd.ExecuteNonQuery();
-            }
         }
 
 
@@ -149,6 +137,7 @@ namespace PayorLedger.Services.Database
         /// </summary>
         public void SaveChanges()
         {
+            /*
             // Get view model data
             (List<PayorEntry> payors, List<HeaderEntry> headers, List<CellEntryToRow> entries, List<PayorComments> comments) = App.ServiceProvider.GetRequiredService<MainPageViewModel>().GetVMData();
 
@@ -291,6 +280,7 @@ namespace PayorLedger.Services.Database
 
             AllChangesSaved = true;
             App.ServiceProvider.GetRequiredService<IUndoRedoService>().OnChangeOccured(true);
+            */
         }
 
 
@@ -299,13 +289,12 @@ namespace PayorLedger.Services.Database
         /// <summary>
         /// Get all the entries
         /// </summary>>
-        /// <returns>Data for the specified year</returns>
-        public (List<CellEntryToRow> Entries, List<PayorComments> Comments)  GetData()
+        /// <returns>Row entries</returns>
+        public List<RowEntry>  GetRows()
         {
-            List<CellEntryToRow> entries = [];
-            List<PayorComments> comments = [];
+            List<RowEntry> rows = [];
 
-            // Get cell entries
+            // Get rows
             using (SQLiteCommand cmd = _sqlConnection.CreateCommand())
             {
                 cmd.CommandText = $@"SELECT * FROM {Enum.GetName(DatabaseTables.Rows)}";
@@ -313,36 +302,40 @@ namespace PayorLedger.Services.Database
                 using SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    entries.Add(new CellEntryToRow(
-                        subheaderId: long.Parse(reader["SubHeaderId"].ToString()!),
+                    rows.Add(new RowEntry(
+                        date: reader["Date"].ToString()!,
+                        orNum: int.Parse(reader["OrNum"].ToString()!),
                         payorId: long.Parse(reader["PayorId"].ToString()!),
-                        amount: decimal.Parse(reader["Amount"].ToString()!),
                         month: (Month)int.Parse(reader["Month"].ToString()!),
+                        comment: reader["Comment"].ToString()!,
                         year: int.Parse(reader["Year"].ToString()!),
-                        state: ChangeState.Unchanged
+                        state: ChangeState.Unchanged,
+                        cellEntries: []
                     ));
                 }
             }
 
-            // Get comments
+            // Get cell entries
             using (SQLiteCommand cmd = _sqlConnection.CreateCommand())
             {
-                cmd.CommandText = $@"SELECT * FROM {Enum.GetName(DatabaseTables.PayorComments)}";
+                cmd.CommandText = $@"SELECT * FROM {Enum.GetName(DatabaseTables.CellEntryToRow)}";
 
                 using SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    comments.Add(new PayorComments(
-                        payorId: long.Parse(reader["PayorId"].ToString()!),
-                        comment: reader["Comment"].ToString()!,
-                        month: (Month)int.Parse(reader["Month"].ToString()!),
-                        year: int.Parse(reader["Year"].ToString()!),
+                    int orNum = int.Parse(reader["OrNum"].ToString()!);
+                    RowEntry parentRow = rows.Find(r => r.OrNum == orNum)!;
+
+                    parentRow.CellEntries.Add(new CellEntryToRow(
+                        row: parentRow,
+                        subheaderId: long.Parse(reader["SubheaderId"].ToString()!),
+                        amount: decimal.Parse(reader["Amount"].ToString()!),
                         state: ChangeState.Unchanged
                     ));
                 }
             }
 
-            return (entries, comments);
+            return rows;
         }
 
 
@@ -473,7 +466,7 @@ namespace PayorLedger.Services.Database
             cmd.ExecuteNonQuery();
 
             // Delete comment entries associated with the payor
-            cmd.CommandText = $@"DELETE FROM {Enum.GetName(DatabaseTables.PayorComments)} WHERE PayorId = @payorId";
+            cmd.CommandText = $@"DELETE FROM {Enum.GetName(DatabaseTables.Rows)} WHERE PayorId = @payorId";
             cmd.ExecuteNonQuery();
 
             // Delete entry from the Payor table
@@ -535,33 +528,37 @@ namespace PayorLedger.Services.Database
 
 
         /// <summary>
-        /// Delete a cell entry from the database
+        /// Delete a row and its cell entries
         /// </summary>
-        /// <param name="entry">Entry to delete</param>
-        private void DeleteCellEntry(CellEntryToRow entry)
+        /// <param name="row">Row entry</param>
+        public void DeleteRow(RowEntry row)
         {
+            using SQLiteTransaction transaction = _sqlConnection.BeginTransaction();
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.Rows)} WHERE PayorId = @payorId AND SubHeaderId = @subheaderId AND Month = @month AND Year = @year";
-            cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
-            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
-            cmd.Parameters.AddWithValue("@month", (int)entry.Month);
-            cmd.Parameters.AddWithValue("@year", entry.Year);
+
+            foreach (CellEntryToRow cellEntry in row.CellEntries)
+                DeleteCellEntry(cellEntry, cmd);
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.Rows)} WHERE OrNum = @orNum";
+            cmd.Parameters.AddWithValue("@orNum", row.OrNum);
             cmd.ExecuteNonQuery();
+
+            transaction.Commit();
         }
 
 
 
         /// <summary>
-        /// Delete a comment entry from the database
+        /// Delete a cell entry from the database
         /// </summary>
-        /// <param name="comment">Entry to delete</param>
-        private void DeleteComment(PayorComments comment)
+        /// <param name="entry">Entry to delete</param>
+        /// <param name="cmd">Existing SQLiteCommand</param>
+        private void DeleteCellEntry(CellEntryToRow entry, SQLiteCommand cmd)
         {
-            using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.PayorComments)} WHERE PayorId = @payorId AND Month = @month AND Year = @year";
-            cmd.Parameters.AddWithValue("@payorId", comment.PayorId);
-            cmd.Parameters.AddWithValue("@month", (int)comment.Month);
-            cmd.Parameters.AddWithValue("@year", comment.Year);
+            cmd.Parameters.Clear();
+            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.CellEntryToRow)} WHERE OrNum = @orNum";
+            cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
             cmd.ExecuteNonQuery();
         }
         #endregion
@@ -639,17 +636,18 @@ namespace PayorLedger.Services.Database
 
 
         /// <summary>
-        /// Add a entry to the PayoToColumn database
+        /// Add an entry to the Row table
         /// </summary>
-        /// <param name="entry">Entry to add</param>
-        private void AddCellEntry(CellEntryToRow entry)
+        /// <param name="row">Row to add</param>
+        private void AddRowEntry(RowEntry entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Rows)} (SubHeaderId, PayorId, Amount, Month, Year) VALUES (@subheaderId, @payorId, @newAmount, @month, @year)";
-            cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
-            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Rows)} (Date, OrNum, PayorId, Comment, Month, Year) VALUES (@date, @orNum, @payorId, @comment, @month, @year)";
+            cmd.Parameters.AddWithValue("@date", entry.Date);
+            cmd.Parameters.AddWithValue("@orNum", entry.OrNum);
             cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
-            cmd.Parameters.AddWithValue("@month", (int)entry.Month);
+            cmd.Parameters.AddWithValue("@comment", entry.Comment);
+            cmd.Parameters.AddWithValue("@month", entry.Month);
             cmd.Parameters.AddWithValue("@year", entry.Year);
             cmd.ExecuteNonQuery();
         }
@@ -657,17 +655,16 @@ namespace PayorLedger.Services.Database
 
 
         /// <summary>
-        /// Add a entry to the PayorComments database
+        /// Add a entry to the CellEntryToRow table
         /// </summary>
         /// <param name="entry">Entry to add</param>
-        private void AddCommentEntry(PayorComments entry)
+        private void AddCellEntry(CellEntryToRow entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.PayorComments)} (PayorId, Comment, Month, Year) VALUES (@payorId, @newComment, @month, @year)";
-            cmd.Parameters.AddWithValue("@newComment", entry.Comment);
-            cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
-            cmd.Parameters.AddWithValue("@month", (int)entry.Month);
-            cmd.Parameters.AddWithValue("@year", entry.Year);
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.CellEntryToRow)} (OrNum, SubHeaderId, Amount) VALUES (@orNum, @subheaderId, @amount)";
+            cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
+            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
+            cmd.Parameters.AddWithValue("@amount", entry.Amount);
             cmd.ExecuteNonQuery();
         }
         #endregion
@@ -699,30 +696,30 @@ namespace PayorLedger.Services.Database
         /// <param name="entry">New entry values</param>
         private void EditCellEntry(CellEntryToRow entry)
         {
+            // TODO: Should or num be edittable
+
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Amount = @newAmount WHERE PayorId = @payorId AND SubHeaderId = @subheaderId AND Month = @month AND Year = @year";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Amount = @newAmount WHERE OrNum = @orNum";
+            cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
             cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
-            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
-            cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
-            cmd.Parameters.AddWithValue("@month", (int)entry.Month);
-            cmd.Parameters.AddWithValue("@year", entry.Year);
             int affectRows = cmd.ExecuteNonQuery();
         }
 
 
 
         /// <summary>
-        /// Update a comment entry
+        /// Update a row entry
         /// </summary>
-        /// <param name="entry">New entry values</param>
-        private void EditCommentEntry(PayorComments entry)
+        /// <param name="entry">New row values</param>
+        private void EditRowEntry(RowEntry entry)
         {
+            // TODO: Should or # and payor be edittable
+
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.PayorComments)} SET Comment = @newComment WHERE PayorId = @payorId AND Month = @month AND Year = @year";
-            cmd.Parameters.AddWithValue("@newComment", entry.Comment);
-            cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
-            cmd.Parameters.AddWithValue("@month", entry.Month.ToString());
-            cmd.Parameters.AddWithValue("@year", entry.Year);
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Date = @date AND Comment = @comment WHERE OrNum = @orNum";
+            cmd.Parameters.AddWithValue("@comment", entry.Comment);
+            cmd.Parameters.AddWithValue("@date", entry.Date);
+            cmd.Parameters.AddWithValue("@orNum", entry.OrNum);
             int affectRows = cmd.ExecuteNonQuery();
         }
 
@@ -795,8 +792,7 @@ namespace PayorLedger.Services.Database
         Header,
         Subheader,
         Rows,
-        CellEntryToRow,
-        PayorComments
+        CellEntryToRow
     }
 
 

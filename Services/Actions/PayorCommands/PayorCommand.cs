@@ -80,7 +80,7 @@ namespace PayorLedger.Services.Actions.PayorCommands
         /// </summary>
         protected void UpdateUI()
         {
-            _mainPageVM.UpdateTotals();
+            _mainPageVM.UpdateUI();
             _managePayorsVM.UpdateUI();
             _managePayorsVM.Page.SelectPayor(0);
         }

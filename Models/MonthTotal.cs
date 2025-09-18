@@ -27,7 +27,7 @@ namespace PayorLedger.Models
 
 
 
-        private Dictionary<long, decimal> payorTotals;
+        private Dictionary<int, decimal> rowTotals;
         private Dictionary<long, decimal> columnTotals;
 
 
@@ -36,7 +36,7 @@ namespace PayorLedger.Models
         {
             Year = year;
             Month = month;
-            payorTotals = [];
+            rowTotals = [];
             columnTotals = [];
         }
 
@@ -51,8 +51,8 @@ namespace PayorLedger.Models
         {
             foreach (MonthTotal monthTotal in totals)
             {
-                foreach (var kvp in monthTotal.payorTotals)
-                    AddToPayorTotal(kvp.Key, kvp.Value);
+                foreach (var kvp in monthTotal.rowTotals)
+                    AddToRowTotal(kvp.Key, kvp.Value);
                 foreach (var kvp in monthTotal.columnTotals)
                     AddToColumnTotal(kvp.Key, kvp.Value);
             }
@@ -63,13 +63,13 @@ namespace PayorLedger.Models
         /// <summary>
         /// Add to the total for a specific payor
         /// </summary>
-        /// <param name="payorId">Id of payor to add to</param>
+        /// <param name="orNum">Or # of the row</param>
         /// <param name="amount">Amount to add</param>
-        public void AddToPayorTotal(long payorId, decimal amount)
+        public void AddToRowTotal(int orNum, decimal amount)
         {
-            if (!payorTotals.ContainsKey(payorId))
-                payorTotals[payorId] = 0;
-            payorTotals[payorId] += amount;
+            if (!rowTotals.ContainsKey(orNum))
+                rowTotals[orNum] = 0;
+            rowTotals[orNum] += amount;
         }
 
 
@@ -89,13 +89,13 @@ namespace PayorLedger.Models
 
 
         /// <summary>
-        /// Get the total for a specific payor
+        /// Get the total for a specific row
         /// </summary>
-        /// <param name="payorId">Id of payor</param>
+        /// <param name="orNum">Or # of the row</param>
         /// <returns>Total</returns>
-        public decimal GetPayorTotal(long payorId)
+        public decimal GetRowTotal(int orNum)
         {
-            if(payorTotals.TryGetValue(payorId, out decimal total))
+            if(rowTotals.TryGetValue(orNum, out decimal total))
                 return total;
             return 0;
         }
@@ -122,7 +122,7 @@ namespace PayorLedger.Models
         /// <returns>Overall total</returns>
         public decimal GetOverallTotal()
         {
-            return payorTotals.Values.Sum();
+            return rowTotals.Values.Sum();
         }
     }
 }

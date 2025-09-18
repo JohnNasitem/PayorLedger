@@ -44,10 +44,10 @@ namespace PayorLedger.Services.Database
 
 
         /// <summary>
-        /// Get all the entries
+        /// Get all the rows
         /// </summary>>
-        /// <returns>Data for the specified year</returns>
-        public (List<CellEntryToRow> Entries, List<PayorComments> Comments) GetData();
+        /// <returns>Rows</returns>
+        public List<RowEntry> GetRows();
 
 
 

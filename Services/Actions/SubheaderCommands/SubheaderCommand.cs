@@ -94,7 +94,7 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
         /// </summary>
         private void UpdateUI()
         {
-            _mainPageVM.UpdateTotals();
+            _mainPageVM.UpdateUI();
             _columnsWindowVM.UpdateUI();
         }
 

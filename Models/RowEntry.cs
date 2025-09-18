@@ -14,37 +14,44 @@ namespace PayorLedger.Models
     public class RowEntry : IDatabaseAction
     {
         /// <summary>
-        /// Date of row entry
+        /// Date of row
         /// </summary>
         public string Date { get; set; }
 
 
 
         /// <summary>
-        /// Or # of row entry
+        /// Or # of row
         /// </summary>
         public int OrNum { get; set; }
 
 
 
         /// <summary>
-        /// Id of the payor
+        /// Id of the payor for this row
         /// </summary>
         public long PayorId { get; set; }
 
 
 
         /// <summary>
-        /// Month of the entry
+        /// Month of this row
         /// </summary>
         public Month Month { get; }
 
 
 
         /// <summary>
-        /// Year of the entry
+        /// Year of this row
         /// </summary>
         public int Year { get; }
+
+
+
+        /// <summary>
+        /// Comment for this row
+        /// </summary>
+        public string Comment { get; set; }
 
 
 
@@ -62,13 +69,14 @@ namespace PayorLedger.Models
 
 
 
-        public RowEntry(string date, int orNum, long payorId, Month month, int year, ChangeState state, List<CellEntryToRow> cellEntries)
+        public RowEntry(string date, int orNum, long payorId, Month month, int year, string comment, ChangeState state, List<CellEntryToRow> cellEntries)
         {
             Date = date;
             OrNum = orNum;
             PayorId = payorId;
             Month = month;
             Year = year;
+            Comment = comment;
             State = state;
             CellEntries = cellEntries;
         }

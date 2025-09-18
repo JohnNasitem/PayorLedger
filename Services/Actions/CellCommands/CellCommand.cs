@@ -83,7 +83,7 @@ namespace PayorLedger.Services.Actions.CellCommands
         /// </summary>
         private void UpdateTables()
         {
-            _mainPageViewModel.UpdateTotals();
+            _mainPageViewModel.UpdateUI();
 
             if (_payorWindowViewModel.ActiveViewPayorViewModel != null && _payorWindowViewModel.ActiveViewPayorViewModel.Payor.PayorId == Cell.PayorId)
                 _payorWindowViewModel.ActiveViewPayorViewModel.UpdateTable();
