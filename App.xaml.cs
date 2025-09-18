@@ -12,7 +12,7 @@ using PayorLedger.Services.Actions;
 using PayorLedger.ViewModels;
 using System.Windows;
 using PayorLedger.Services.Database;
-using PayorLedger.Windows.Columns;
+using PayorLedger.Services.Logger;
 
 namespace PayorLedger
 {
@@ -37,6 +37,44 @@ namespace PayorLedger
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
             ServiceProvider.GetRequiredService<IDatabaseService>().InitializeTables();
+
+            ILogger logger = ServiceProvider.GetRequiredService<ILogger>();
+
+
+            DispatcherUnhandledException += (s, e) => {
+                logger.AddLog("UI Exception: " + e.Exception.ToString(), Logger.LogType.Error);
+                MessageBox.Show("Error occured! Send the log file to John then restart the application.");
+                // Prevent immediate crash
+                e.Handled = true;
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                Exception ex = e.ExceptionObject as Exception;
+
+                if (ex != null)
+                {
+                    logger.AddLog("Non-UI Exception: " + ex.ToString(), Logger.LogType.Error);
+                }
+                else
+                {
+                    logger.AddLog("Non-UI Exception (unknown type): " + e.ExceptionObject, Logger.LogType.Error);
+                }
+
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show("Error occured! Send the log file to John then restart the application.");
+                });
+            };
+
+            TaskScheduler.UnobservedTaskException += (sender, e) =>
+            {
+                logger.AddLog("Unobserved Task Exception: " + e.Exception.ToString(), Logger.LogType.Error);
+
+                MessageBox.Show("Error occured! Send the log file to John then restart the application.");
+                // Prevents the exception from crashing the app in .NET Framework
+                e.SetObserved();
+            };
         }
 
 
@@ -57,6 +95,7 @@ namespace PayorLedger
             // Services
             services.AddSingleton<IUndoRedoService, UndoRedoService>();
             services.AddSingleton<IDatabaseService, DatabaseService>();
+            services.AddSingleton<ILogger, Logger>();
         }
     }
 }
