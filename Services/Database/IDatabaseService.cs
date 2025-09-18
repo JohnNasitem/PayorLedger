@@ -47,7 +47,7 @@ namespace PayorLedger.Services.Database
         /// Get all the entries
         /// </summary>>
         /// <returns>Data for the specified year</returns>
-        public (List<PayorToColumnEntry> Entries, List<PayorComments> Comments) GetData();
+        public (List<CellEntryToRow> Entries, List<PayorComments> Comments) GetData();
 
 
 

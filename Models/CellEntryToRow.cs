@@ -1,6 +1,6 @@
 ﻿//***********************************************************************************
-//Program: PayorToColumnEntry.cs
-//Description: Entry in the PayorToColumn database table
+//Program: CellEntryToRow.cs
+//Description: Entry in the CellEntryToRow database table
 //Date: May 5, 2025
 //Author: John Nasitem
 //***********************************************************************************
@@ -11,7 +11,7 @@ using PayorLedger.Services.Database;
 
 namespace PayorLedger.Models
 {
-    public class PayorToColumnEntry : IDatabaseAction
+    public class CellEntryToRow : IDatabaseAction
     {
         /// <summary>
         /// Id of the column
@@ -55,7 +55,7 @@ namespace PayorLedger.Models
 
 
 
-        public PayorToColumnEntry(long subheaderId, long payorId, decimal amount, Month month, int year, ChangeState state)
+        public CellEntryToRow(long subheaderId, long payorId, decimal amount, Month month, int year, ChangeState state)
         {
             SubheaderId = subheaderId;
             PayorId = payorId;
@@ -67,7 +67,7 @@ namespace PayorLedger.Models
 
 
 
-        public PayorToColumnEntry(PayorToColumnEntry instanceToClone)
+        public CellEntryToRow(CellEntryToRow instanceToClone)
         {
             SubheaderId = instanceToClone.SubheaderId;
             PayorId = instanceToClone.PayorId;

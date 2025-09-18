@@ -101,7 +101,7 @@ namespace PayorLedger.ViewModels
         /// Get all entries associated with this payor
         /// </summary>
         /// <returns>Dictionary with Year being the key and List of entries being the value</returns>
-        private Dictionary<int, List<PayorToColumnEntry>> GetEntries()
+        private Dictionary<int, List<CellEntryToRow>> GetEntries()
         {
             // Get entries from main page view model
             return _mainPageVM.LedgerEntries
@@ -135,7 +135,7 @@ namespace PayorLedger.ViewModels
         /// Create the rows for the table
         /// </summary>
         /// <returns>List of rows</returns>
-        private List<DataRow> CreateRows(Dictionary<int, List<PayorToColumnEntry>> entries)
+        private List<DataRow> CreateRows(Dictionary<int, List<CellEntryToRow>> entries)
         {
             List<DataRow> rows = [];
             decimal payorTotal = 0;
@@ -158,7 +158,7 @@ namespace PayorLedger.ViewModels
                 row["Year"] = year;
 
                 // Populate the cells
-                foreach (PayorToColumnEntry entry in entries[year])
+                foreach (CellEntryToRow entry in entries[year])
                 {
                     SubheaderEntry subheader = subheaders.FirstOrDefault(s => s.Id == entry.SubheaderId)!;
 

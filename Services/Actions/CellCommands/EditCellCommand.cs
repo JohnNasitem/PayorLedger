@@ -18,7 +18,7 @@ namespace PayorLedger.Services.Actions.CellCommands
 
 
 
-        public EditCellCommand(PayorToColumnEntry cellEntry, decimal newAmount) : base(cellEntry)
+        public EditCellCommand(CellEntryToRow cellEntry, decimal newAmount) : base(cellEntry)
         {
             _originalAmount = cellEntry.Amount;
             _newAmount = newAmount;

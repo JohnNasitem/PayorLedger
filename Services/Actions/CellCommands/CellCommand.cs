@@ -19,7 +19,7 @@ namespace PayorLedger.Services.Actions.CellCommands
         /// <summary>
         /// Cell entry being manipulated
         /// </summary>
-        public PayorToColumnEntry Cell { get; }
+        public CellEntryToRow Cell { get; }
 
 
 
@@ -28,7 +28,7 @@ namespace PayorLedger.Services.Actions.CellCommands
 
 
 
-        public CellCommand(PayorToColumnEntry cell)
+        public CellCommand(CellEntryToRow cell)
         {
             Cell = cell;
         }

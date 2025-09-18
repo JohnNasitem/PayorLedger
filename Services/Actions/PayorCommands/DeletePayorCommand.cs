@@ -14,8 +14,8 @@ namespace PayorLedger.Services.Actions.PayorCommands
 {
     public class DeletePayorCommand : PayorCommand
     {
-        private List<PayorToColumnEntry> _payorEntries = [];
-        private Dictionary<PayorToColumnEntry, ChangeState> _originalStates = [];
+        private List<CellEntryToRow> _payorEntries = [];
+        private Dictionary<CellEntryToRow, ChangeState> _originalStates = [];
 
 
 
@@ -34,7 +34,7 @@ namespace PayorLedger.Services.Actions.PayorCommands
             _payorEntries = _mainPageVM.LedgerEntries.Where(e => e.PayorId == _payor.PayorId).ToList();
 
             // Remove entries from entry list
-            foreach (PayorToColumnEntry entry in _payorEntries)
+            foreach (CellEntryToRow entry in _payorEntries)
             {
                 _originalStates.Add(entry, entry.State);
                 entry.State = ChangeState.Removed;
@@ -51,7 +51,7 @@ namespace PayorLedger.Services.Actions.PayorCommands
         public override void Undo()
         {
             // Add back removed entries
-            foreach (PayorToColumnEntry entry in _payorEntries)
+            foreach (CellEntryToRow entry in _payorEntries)
                 entry.State = _originalStates[entry];
 
             AddPayor();

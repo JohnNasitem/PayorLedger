@@ -15,8 +15,8 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
 {
     public class DeleteSubheaderCommand : SubheaderCommand
     {
-        private List<PayorToColumnEntry> _subheaderEntries = [];
-        private Dictionary<PayorToColumnEntry, ChangeState> _originalStates = [];
+        private List<CellEntryToRow> _subheaderEntries = [];
+        private Dictionary<CellEntryToRow, ChangeState> _originalStates = [];
 
 
         public DeleteSubheaderCommand(SubheaderEntry subheader) : base(subheader) { }
@@ -34,7 +34,7 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
             _subheaderEntries.AddRange(_mainPageVM.LedgerEntries.Where(e => e.SubheaderId == Subheader.Id));
 
             // Remove cell entries related to the subheader
-            foreach (PayorToColumnEntry entry in _subheaderEntries)
+            foreach (CellEntryToRow entry in _subheaderEntries)
             {
                 _originalStates.Add(entry, entry.State);
                 entry.State = ChangeState.Removed;
@@ -51,7 +51,7 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
         public override void Undo()
         {
             // Add back removed entries
-            foreach (PayorToColumnEntry entry in _subheaderEntries)
+            foreach (CellEntryToRow entry in _subheaderEntries)
                 entry.State = _originalStates[entry];
 
             AddSubheader();

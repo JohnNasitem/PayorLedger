@@ -17,7 +17,7 @@ namespace PayorLedger.Services.Actions.PayorCommands
     public abstract class PayorCommand : IUndoableCommand
     {
         protected readonly PayorEntry _payor;
-        protected List<PayorToColumnEntry> _entries;
+        protected List<CellEntryToRow> _entries;
         protected static readonly MainPageViewModel _mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
         protected static readonly ManagePayorsViewModel _managePayorsVM = App.ServiceProvider.GetRequiredService<ManagePayorsViewModel>();
 

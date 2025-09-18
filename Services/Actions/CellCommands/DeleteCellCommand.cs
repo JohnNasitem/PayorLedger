@@ -13,7 +13,7 @@ namespace PayorLedger.Services.Actions.CellCommands
 {
     internal class DeleteCellCommand : CellCommand
     {
-        public DeleteCellCommand(PayorToColumnEntry cellEntry) : base(cellEntry) { }
+        public DeleteCellCommand(CellEntryToRow cellEntry) : base(cellEntry) { }
 
 
 

@@ -13,7 +13,7 @@ namespace PayorLedger.Services.Actions.CellCommands
 {
     internal class AddCellCommand : CellCommand
     {
-        public AddCellCommand(PayorToColumnEntry cellEntry) : base(cellEntry) { }
+        public AddCellCommand(CellEntryToRow cellEntry) : base(cellEntry) { }
 
 
 
