@@ -14,16 +14,16 @@ namespace PayorLedger.Models
     public class CellEntryToRow : IDatabaseAction
     {
         /// <summary>
-        /// Id of the column
+        /// Row this cell entry belongs to
         /// </summary>
-        public long SubheaderId { get; set; }
+        public RowEntry Row { get; set; }
 
 
 
         /// <summary>
-        /// Id of the payor
+        /// Id of the column
         /// </summary>
-        public long PayorId { get; set; }
+        public long SubheaderId { get; set; }
 
 
 
@@ -35,33 +35,17 @@ namespace PayorLedger.Models
 
 
         /// <summary>
-        /// Month of the entry
-        /// </summary>
-        public Month Month { get; }
-
-
-
-        /// <summary>
-        /// Year of the entry
-        /// </summary>
-        public int Year { get; }
-
-
-
-        /// <summary>
         /// State of the object in relation to the database
         /// </summary>
         public ChangeState State { get; set; }
 
 
 
-        public CellEntryToRow(long subheaderId, long payorId, decimal amount, Month month, int year, ChangeState state)
+        public CellEntryToRow(RowEntry row, long subheaderId, decimal amount, ChangeState state)
         {
+            Row = row;
             SubheaderId = subheaderId;
-            PayorId = payorId;
             Amount = amount;
-            Month = month;
-            Year = year;
             State = state;
         }
 
@@ -70,10 +54,8 @@ namespace PayorLedger.Models
         public CellEntryToRow(CellEntryToRow instanceToClone)
         {
             SubheaderId = instanceToClone.SubheaderId;
-            PayorId = instanceToClone.PayorId;
+            Row = instanceToClone.Row;
             Amount = instanceToClone.Amount;
-            Month = instanceToClone.Month;
-            Year = instanceToClone.Year;
             State = instanceToClone.State;
         }
     }
