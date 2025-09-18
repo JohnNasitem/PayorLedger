@@ -61,8 +61,8 @@ namespace PayorLedger.Pages
             RegisterMenuShortcut(window, UI_AddPayor_Mni, vm.AddPayorCommand, Key.P, ModifierKeys.Control | ModifierKeys.Shift);
             RegisterMenuShortcut(window, UI_AddHeader_Mni, vm.AddHeaderCommand, Key.D1, ModifierKeys.Control | ModifierKeys.Shift);
             RegisterMenuShortcut(window, UI_AddSubheader_Mni, vm.AddSubheaderCommand, Key.D2, ModifierKeys.Control | ModifierKeys.Shift);
-            RegisterMenuShortcut(window, UI_Payors_Mni, vm.OpenPayorWindowCommand, Key.P, ModifierKeys.Control);
-            RegisterMenuShortcut(window, UI_Columns_Mni, vm.OpenColumnsWindowCommand, Key.P, ModifierKeys.Control);
+            RegisterMenuShortcut(window, UI_Payors_Mni, vm.OpenPayorWindowCommand, Key.P, ModifierKeys.Control | ModifierKeys.Alt);
+            RegisterMenuShortcut(window, UI_Columns_Mni, vm.OpenColumnsWindowCommand, Key.C, ModifierKeys.Control | ModifierKeys.Alt);
         }
 
 
