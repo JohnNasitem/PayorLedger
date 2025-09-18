@@ -9,6 +9,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Services.Database;
+using PayorLedger.Services.Logger;
 
 namespace PayorLedger.Services.Actions
 {
@@ -20,6 +21,7 @@ namespace PayorLedger.Services.Actions
         private readonly Stack<IUndoableCommand> _redoStack = [];
 
         private static readonly IDatabaseService _dbService = App.ServiceProvider.GetRequiredService<IDatabaseService>();
+        private static readonly ILogger _logger = App.ServiceProvider.GetRequiredService<ILogger>();
 
 
 
@@ -50,6 +52,7 @@ namespace PayorLedger.Services.Actions
         /// <param name="command"></param>
         public void Execute(IUndoableCommand command)
         {
+            _logger.AddLog($"{command.GetType()}", Logger.Logger.LogType.Action);
             command.Execute();
             _undoStack.Push(command);
             _redoStack.Clear();

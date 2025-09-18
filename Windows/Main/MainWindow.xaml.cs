@@ -10,8 +10,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Dialogs;
 using PayorLedger.Pages;
-using PayorLedger.Services.Actions;
 using PayorLedger.Services.Database;
+using PayorLedger.Services.Logger;
 using PayorLedger.ViewModels;
 using System.Windows;
 
@@ -57,6 +57,7 @@ namespace PayorLedger
 
             App.ServiceProvider.GetRequiredService<PayorWindowViewModel>().Exit();
             App.ServiceProvider.GetRequiredService<ColumnsWindowViewModel>().Exit();
+            App.ServiceProvider.GetRequiredService<ILogger>().AddLog("User closed application", Logger.LogType.Action);
         }
     }
 }
