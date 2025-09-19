@@ -27,7 +27,8 @@ using System.Windows.Media;
 namespace PayorLedger.ViewModels
 {
     public record CellEditInfo(string ColumnName, int OrNum, decimal NewValue);
-    public record RowEditInfo(int OrNum, string NewComment, string NewDate);
+    public record CommentEditInfo(int OrNum, string NewComment);
+    public record RowAddInfo(Month Month, int Year);
 
     public class MainPageViewModel
     {
@@ -68,8 +69,9 @@ namespace PayorLedger.ViewModels
         public ICommand AddHeaderCommand { get; }
         public ICommand AddSubheaderCommand { get; }
         public ICommand DeleteSubheaderCommand { get; }
+        public ICommand EditRowCommand { get; }
         public ICommand CellEdittedCommand { get; }
-        public ICommand RowEdittedCommand { get; }
+        public ICommand CommentEdittedCommand { get; }
         public ICommand ViewPayorCommand { get; }
         public ICommand OpenPayorWindowCommand { get; }
         public ICommand OpenColumnsWindowCommand { get; }
@@ -96,14 +98,17 @@ namespace PayorLedger.ViewModels
             AddHeaderCommand = new RelayCommand(ExecuteAddHeader);
             AddSubheaderCommand = new RelayCommand(ExecuteAddSubheader);
             DeleteSubheaderCommand = new RelayCommand<string>(ExecuteDeleteSubheader);
+            EditRowCommand = new RelayCommand<string>(ExecuteEditRow);
             CellEdittedCommand = new RelayCommand<CellEditInfo>(ExecuteCellEditted);
-            RowEdittedCommand = new RelayCommand<RowEditInfo>(ExecuteRowEditted);
+            CommentEdittedCommand = new RelayCommand<CommentEditInfo>(ExecuteEditComment);
             ViewPayorCommand = new RelayCommand<string>(ExecuteViewPayor);
             OpenPayorWindowCommand = new RelayCommand(ExecuteOpenPayorWindow);
             OpenColumnsWindowCommand = new RelayCommand(ExecuteOpenColumnsWindow);
 
             // Populate global vars
             GetDatabaseValues();
+
+            Page.UpdateAddRowButtonState();
 
             // Calculate totals
             SetYear(Year);
@@ -223,8 +228,8 @@ namespace PayorLedger.ViewModels
         {
             List<DataColumn> columns = [];
 
-            columns.Add(MarkColumnAsDefault(new DataColumn("Date") { AllowDBNull = false}));
-            columns.Add(MarkColumnAsDefault(new DataColumn("OR #") { AllowDBNull = false}));
+            columns.Add(MarkColumnAsDefault(new DataColumn("Date") { AllowDBNull = false, ReadOnly = true }));
+            columns.Add(MarkColumnAsDefault(new DataColumn("OR #") { AllowDBNull = false, ReadOnly = true }));
             columns.Add(MarkColumnAsDefault(new DataColumn("Payor") { AllowDBNull = false, ReadOnly = true }));
 
             // Order columns
@@ -368,17 +373,34 @@ namespace PayorLedger.ViewModels
 
         #region Commands
         /// <summary>
+        /// Adds a row to the table
+        /// </summary>
+        public void ExecuteAddRow(Month month, int year)
+        {
+            AddRowDialog dlg = new();
+
+            if (dlg.ShowDialog() != true)
+                return;
+
+            _undoRedoService.Execute(new AddRowCommand(new RowEntry(dlg.RowDate, dlg.RowOrNum, dlg.RowPayorId, month, year, "", ChangeState.Added, [])));
+        }
+
+
+
+        /// <summary>
         /// Adds a payor to the database and refreshes the UI
         /// </summary>
         public void ExecuteAddPayor()
         {
-            AddPayorDialog page = new();
+            AddPayorDialog dlg = new();
 
-            if (page.ShowDialog() != true)
+            if (dlg.ShowDialog() != true)
                 return;
 
             // Create a new payor with the data from the dialog
-            _undoRedoService.Execute(new AddPayorCommand(new PayorEntry(-1, page.PayorName, page.PayorLabel, ChangeState.Added)));
+            _undoRedoService.Execute(new AddPayorCommand(new PayorEntry(-1, dlg.PayorName, dlg.PayorLabel, ChangeState.Added)));
+
+            Page.UpdateAddRowButtonState();
         }
 
 
@@ -388,13 +410,13 @@ namespace PayorLedger.ViewModels
         /// </summary>
         public void ExecuteAddHeader()
         {
-            AddHeaderDialog page = new();
+            AddHeaderDialog dlg = new();
 
-            if (page.ShowDialog() != true)
+            if (dlg.ShowDialog() != true)
                 return;
 
             // Create a new header with the data from the dialog
-            _undoRedoService.Execute(new AddHeaderCommand(new HeaderEntry(-1, page.HeaderName, page.HeaderOrder, ChangeState.Added)));
+            _undoRedoService.Execute(new AddHeaderCommand(new HeaderEntry(-1, dlg.HeaderName, dlg.HeaderOrder, ChangeState.Added)));
         }
 
 
@@ -404,15 +426,15 @@ namespace PayorLedger.ViewModels
         /// </summary>
         public void ExecuteAddSubheader()
         {
-            AddSubheaderDialog page = new();
+            AddSubheaderDialog dlg = new();
 
-            if (page.ShowDialog() != true)
+            if (dlg.ShowDialog() != true)
                 return;
 
-            HeaderEntry parentHeader = Headers.Find(h => h.Id == page.ParentHeader.Id)!;
+            HeaderEntry parentHeader = Headers.Find(h => h.Id == dlg.ParentHeader.Id)!;
 
             // Create a new subheader with the data from the dialog
-            _undoRedoService.Execute(new AddSubheaderCommand(new SubheaderEntry(-1, page.SubheaderName, page.SubheaderOrder, parentHeader, ChangeState.Added)));
+            _undoRedoService.Execute(new AddSubheaderCommand(new SubheaderEntry(-1, dlg.SubheaderName, dlg.SubheaderOrder, parentHeader, ChangeState.Added)));
         }
 
 
@@ -472,6 +494,27 @@ namespace PayorLedger.ViewModels
 
 
         /// <summary>
+        /// Prompt user to edit the row
+        /// </summary>
+        /// <param name="rowOrNumStr"></param>
+        private void ExecuteEditRow(string? rowOrNumStr)
+        {
+            if (rowOrNumStr == null || !int.TryParse(rowOrNumStr, out int rowOrNum))
+                return;
+
+            RowEntry row = LedgerRows.Find(r => r.OrNum == rowOrNum)!;
+
+            AddRowDialog dlg = new(row);
+
+            if (dlg.ShowDialog() != true)
+                return;
+
+            _undoRedoService.Execute(new EditRowCommand(row, dlg.RowPayorId, dlg.RowOrNum, dlg.RowDate, row.Comment));
+        }
+
+
+
+        /// <summary>
         /// Adds edit to the undo/redo stack and edits the cell entry or adds one if it doesn't exist
         /// </summary>
         /// <param name="cellInfo">Edit info</param>
@@ -508,7 +551,7 @@ namespace PayorLedger.ViewModels
         /// Adds edit to the undo/redo stack and edits the cell comment or adds one if it doesn't exist
         /// </summary>
         /// <param name="rowInfo">Edit info</param>
-        private void ExecuteRowEditted(RowEditInfo? rowInfo)
+        private void ExecuteEditComment(CommentEditInfo? rowInfo)
         {
             if (rowInfo == null)
                 return;
@@ -516,8 +559,8 @@ namespace PayorLedger.ViewModels
             // Find associated row
             RowEntry entry = LedgerRows.Find(e => e.OrNum == rowInfo.OrNum)!;
 
-            // Update entry
-            _undoRedoService.Execute(new EditRowCommand(entry, rowInfo.NewDate, rowInfo.NewComment));
+            // Update row
+            _undoRedoService.Execute(new EditRowCommand(entry, entry.PayorId, entry.OrNum, entry.Date, rowInfo.NewComment));
         }
 
 

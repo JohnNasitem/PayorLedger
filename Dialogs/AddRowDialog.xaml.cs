@@ -1,0 +1,152 @@
+﻿//***********************************************************************************
+//Program: AddRowDialog.cs
+//Description: Add row dialog code
+//Date: Sept 18, 2025
+//Author: John Nasitem
+//***********************************************************************************
+
+
+
+using Microsoft.Extensions.DependencyInjection;
+using PayorLedger.Models;
+using PayorLedger.ViewModels;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace PayorLedger.Dialogs
+{
+    /// <summary>
+    /// Interaction logic for AddRowDialog.xaml
+    /// </summary>
+    public partial class AddRowDialog : Window
+    {
+        /// <summary>
+        /// Date of row
+        /// </summary>
+        public string RowDate { get; private set; } = string.Empty;
+
+
+
+        /// <summary>
+        /// Payor of the row
+        /// </summary>
+        public long RowPayorId { get; private set; } = -1;
+
+
+
+        /// <summary>
+        /// Or # of the row
+        /// </summary>
+        public int RowOrNum { get; private set; } = -1;
+
+
+
+        private RowEntry? _existingRow = null;
+        private MainPageViewModel _mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
+
+
+
+        public AddRowDialog()
+        {
+            InitializeComponent();
+            PopulatePayors();
+            UI_RowPayor_Cmb.SelectedIndex = UI_RowPayor_Cmb.Items.Count - 1;
+            RowDate = DateTime.Now.ToString("dd/MM/yyyy");
+            UI_RowDate_Tbx.Text = RowDate;
+            UI_RowOrNum_Tbx.Text = (_mainPageVM.LedgerRows.Count > 0 ? _mainPageVM.LedgerRows.Max(r => r.OrNum) + 1 : 1).ToString();
+        }
+
+
+
+        public AddRowDialog(RowEntry existingRow)
+        {
+            InitializeComponent();
+
+            PopulatePayors();
+            PayorEntry payor = _mainPageVM.Payors.Find(p => p.PayorId == existingRow.PayorId)!;
+            UI_RowPayor_Cmb.SelectedItem = new DropDownItem { Name = payor.PayorName, Value = payor.PayorId };
+
+            _existingRow = existingRow;
+            UI_RowDate_Tbx.Text = existingRow.Date;
+            UI_RowOrNum_Tbx.Text = existingRow.OrNum.ToString();
+
+            UI_Title_Lbl.Content = "Edit Row";
+            UI_AddRow_Btn.Content = "Save Changes";
+
+            UpdateButton();
+        }
+
+
+
+        /// <summary>
+        /// Populate order combo box
+        /// </summary>
+        private void PopulatePayors()
+        {
+            UI_RowPayor_Cmb.ItemsSource = App.ServiceProvider.GetRequiredService<MainPageViewModel>().Payors.Select(p => new DropDownItem { Name = p.PayorName, Value = p.PayorId});
+            UI_RowPayor_Cmb.DisplayMemberPath = "Name";
+        }
+
+
+
+        /// <summary>
+        /// Update the state of the Add button based on the input fields.
+        /// </summary>
+        public void UpdateButton()
+        {
+            if (!int.TryParse(UI_RowOrNum_Tbx.Text, out int orNum) || orNum < 0)
+            {
+                UI_Status_Lbl.Text = "Or # must be a positive integer";
+                UI_Status_Lbl.Visibility = Visibility.Visible;
+                UI_AddRow_Btn.IsEnabled = false;
+                return;
+            }
+
+            if (_existingRow?.OrNum != orNum && _mainPageVM.LedgerRows.Select(r => r.OrNum).Contains(orNum))
+            {
+                UI_Status_Lbl.Text = "A row with this Or # already exists";
+                UI_Status_Lbl.Visibility = Visibility.Visible;
+                UI_AddRow_Btn.IsEnabled = false;
+                return;
+            }
+
+            UI_Status_Lbl.Visibility = Visibility.Hidden;
+
+            UI_AddRow_Btn.IsEnabled =
+                UI_RowDate_Tbx.Text.Trim().Length > 0 &&
+                UI_RowPayor_Cmb.SelectedIndex > -1;
+        }
+
+
+
+        /// <summary>
+        /// Click event handler for the Add button.
+        /// </summary>
+        /// <param name="sender">Object that called the method</param>
+        /// <param name="e">Event args</param>
+        private void UI_AddRow_Btn_Click(object sender, RoutedEventArgs e)
+        {
+            RowDate = UI_RowDate_Tbx.Text.Trim();
+            RowPayorId = ((DropDownItem)UI_RowPayor_Cmb.SelectedItem).Value;
+            RowOrNum = int.Parse(UI_RowOrNum_Tbx.Text);
+            DialogResult = true;
+        }
+
+
+
+        // Update button state on change
+        private void UI_RowDate_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
+        private void UI_RowOrNum_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
+
+
+
+        /// <summary>
+        /// Struct to hold the drop down item values
+        /// </summary>
+        private struct DropDownItem
+        {
+            public string Name { get; set; }
+            public long Value { get; set; }
+        }
+    }
+}

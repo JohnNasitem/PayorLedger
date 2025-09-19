@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PayorLedger.Pages
 {
@@ -56,11 +57,14 @@ namespace PayorLedger.Pages
         {
             MainPageViewModel vm = (MainPageViewModel)DataContext;
             RegisterMenuShortcut(window, UI_SaveLedger_Mni, vm.SaveLedgerCommand, Key.S, ModifierKeys.Control);
+
             RegisterMenuShortcut(window, UI_Undo_Mni, vm.UndoCommand, Key.Z, ModifierKeys.Control);
             RegisterMenuShortcut(window, UI_Redo_Mni, vm.RedoCommand, Key.Y, ModifierKeys.Control);
+
             RegisterMenuShortcut(window, UI_AddPayor_Mni, vm.AddPayorCommand, Key.P, ModifierKeys.Control | ModifierKeys.Shift);
             RegisterMenuShortcut(window, UI_AddHeader_Mni, vm.AddHeaderCommand, Key.D1, ModifierKeys.Control | ModifierKeys.Shift);
             RegisterMenuShortcut(window, UI_AddSubheader_Mni, vm.AddSubheaderCommand, Key.D2, ModifierKeys.Control | ModifierKeys.Shift);
+
             RegisterMenuShortcut(window, UI_Payors_Mni, vm.OpenPayorWindowCommand, Key.P, ModifierKeys.Control | ModifierKeys.Alt);
             RegisterMenuShortcut(window, UI_Columns_Mni, vm.OpenColumnsWindowCommand, Key.C, ModifierKeys.Control | ModifierKeys.Alt);
         }
@@ -120,8 +124,8 @@ namespace PayorLedger.Pages
             // Check if the column is a default column
             if (dataTable.Columns.Contains(e.PropertyName) && (dataTable.Columns[e.PropertyName]!.ExtendedProperties["IsDefault"] as bool? ?? false))
             {
-                // If the its not the payor column, don't add a context menu
-                if (e.PropertyName != "Payor")
+                // If the its not the Or # column, don't add a context menu
+                if (e.PropertyName.ToLower() != "or #")
                     return;
 
                 // Set up right click context menu
@@ -129,10 +133,10 @@ namespace PayorLedger.Pages
                 var cellMenu = new ContextMenu();
                 var menuItem = new MenuItem
                 {
-                    Header = "View Payor",
-                    Command = _vm.ViewPayorCommand,
+                    Header = "Edit Row",
+                    Command = _vm.EditRowCommand,
                     // This gets the cell value
-                    CommandParameter = e.Column.Header.ToString()
+                    CommandParameter = e.Column.Header.ToString()!
                 };
                 menuItem.SetBinding(MenuItem.CommandParameterProperty, new Binding(e.PropertyName));
                 cellMenu.Items.Add(menuItem);
@@ -169,14 +173,13 @@ namespace PayorLedger.Pages
         /// <param name="e">Event args</param>
         private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            if (e.Column.Header.ToString() == "Comments" || e.Column.Header.ToString() == "Date")
+            if (e.Column.Header.ToString() == "Comments")
             {
                 // Send update to view model
-                ((MainPageViewModel)DataContext).RowEdittedCommand.Execute(
-                    new RowEditInfo(
+                ((MainPageViewModel)DataContext).CommentEdittedCommand.Execute(
+                    new CommentEditInfo(
                         int.Parse(((DataRowView)e.Row.Item)!.Row["Or #"].ToString()!),
-                        ((DataRowView)e.Row.Item)!.Row["Comments"].ToString()!,
-                        ((DataRowView)e.Row.Item)!.Row["Date"].ToString()!
+                        ((TextBox)e.EditingElement).Text
                     ));
             }
             else
@@ -330,5 +333,29 @@ namespace PayorLedger.Pages
 
             UI_SelectYear_Tbx.Text = _vm.Year.ToString();
         }
+
+
+
+        /// <summary>
+        /// Prompt user to add a row
+        /// </summary>
+        /// <param name="sender">Button</param>
+        /// <param name="e">Event args</param>
+        private void UI_AddRow_Btn_Click(object sender, RoutedEventArgs e)
+        {
+            string[] dateParts = ((MonthTab)((TabItem)UI_MonthlyLedgers_Tbc.ItemContainerGenerator.ContainerFromIndex(0)).Header).Content.TableName.Split('-');
+            _vm.ExecuteAddRow(Enum.Parse<Month>(dateParts[0]), int.Parse(dateParts[1]));
+        }
+
+
+
+        /// <summary>
+        /// Update the state of the add row button
+        /// </summary>
+        public void UpdateAddRowButtonState()
+        {
+            UI_AddRow_Btn.IsEnabled = _vm.Payors.Where(p => p.State != ChangeState.Removed).Any();
+        }
+
     }
 }

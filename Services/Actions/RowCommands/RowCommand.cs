@@ -36,7 +36,7 @@ namespace PayorLedger.Services.Actions.RowCommands
             _row.State = ChangeState.Added;
 
             // Add row to main list if it doesnt exist
-            if (_mainPageVM.LedgerRows.Any(r => r.OrNum == _row.OrNum))
+            if (!_mainPageVM.LedgerRows.Any(r => r.OrNum == _row.OrNum))
                 _mainPageVM.LedgerRows.Add(_row);
 
             _mainPageVM.UpdateUI();
@@ -60,13 +60,19 @@ namespace PayorLedger.Services.Actions.RowCommands
         /// <summary>
         /// Edit row
         /// </summary>
+        /// <param name="newPayorId">New payor id of row</param>
+        /// <param name="newOrNum">New Or # of row</param>
         /// <param name="newDate">New date of row</param>
         /// <param name="newComment">New comment of row</param>
-        protected void EditRow(string newDate, string newComment)
+        protected void EditRow(long newPayorId, int newOrNum, string newDate, string newComment)
         {
             _row.State = ChangeState.Edited;
+            _row.PayorId = newPayorId;
+            _row.OrNum = newOrNum;
             _row.Date = newDate;
             _row.Comment = newComment;
+
+            _mainPageVM.UpdateUI();
         }
 
 

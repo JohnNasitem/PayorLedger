@@ -34,7 +34,6 @@ namespace PayorLedger.ViewModels
         public ObservableCollection<string> Payors { get; set; }
 
 
-        private readonly IDatabaseService _dbService;
         private readonly IUndoRedoService _undoRedoService;
         private readonly PayorWindowViewModel _payorWindowVM;
 
@@ -43,7 +42,6 @@ namespace PayorLedger.ViewModels
         public ManagePayorsViewModel(PayorWindowViewModel payorWindowVM, IUndoRedoService undoRedoService, IDatabaseService dbService)
         {
             // Initialize global vars
-            _dbService = dbService;
             _undoRedoService = undoRedoService;
             _payorWindowVM = payorWindowVM;
             Payors = [];
@@ -156,11 +154,14 @@ namespace PayorLedger.ViewModels
         /// </summary>
         public void UpdateUI()
         {
+            MainPageViewModel mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
+
             Payors.Clear();
-            foreach (PayorEntry payor in App.ServiceProvider.GetRequiredService<MainPageViewModel>().Payors.Where(p => p.State != ChangeState.Removed).OrderBy(e => e.PayorName))
+            foreach (PayorEntry payor in mainPageVM.Payors.Where(p => p.State != ChangeState.Removed).OrderBy(e => e.PayorName))
                 Payors.Add(payor.PayorName);
 
             Page.UpdateButtonStates();
+            mainPageVM.Page.UpdateAddRowButtonState();
         }
     }
 }

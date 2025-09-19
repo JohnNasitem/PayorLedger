@@ -47,6 +47,8 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock
                 Grid.Column="0"
@@ -68,6 +70,12 @@
                 Content="▼"
                 Grid.Column="3"
                 Click="YearEditButton_Click"/>
+            <Button
+                x:Name="UI_AddRow_Btn"
+                Content="Add Row"
+                FontSize="14"
+                Grid.Column="5"
+                Click="UI_AddRow_Btn_Click"/>
         </Grid>
 
         <TabControl
