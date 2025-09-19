@@ -31,7 +31,7 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
             // Get all the cell entries related to the subheader
             _subheaderEntries.Clear();
             _originalStates.Clear();
-            _subheaderEntries.AddRange(_mainPageVM.LedgerEntries.Where(e => e.SubheaderId == Subheader.Id));
+            _subheaderEntries.AddRange(_mainPageVM.LedgerRows.SelectMany(r => r.CellEntries).Where(e => e.SubheaderId == Subheader.Id));
 
             // Remove cell entries related to the subheader
             foreach (CellEntryToRow entry in _subheaderEntries)

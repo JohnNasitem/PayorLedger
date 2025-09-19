@@ -10,8 +10,6 @@
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Database;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 namespace PayorLedger.Services.Actions.HeaderCommands
 {
@@ -34,7 +32,7 @@ namespace PayorLedger.Services.Actions.HeaderCommands
             // Get all the cell entries related to the header
             _headerEntries.Clear();
             _originalStates.Clear();
-            _headerEntries.AddRange(_mainPageVM.LedgerEntries.Where(e => Header.Subheaders.Select(s => s.Id).Contains(e.SubheaderId)));
+            _headerEntries.AddRange(_mainPageVM.LedgerRows.SelectMany(r => r.CellEntries).Where(e => Header.Subheaders.Select(s => s.Id).Contains(e.SubheaderId)));
 
             // Remove cell entries related to the subheader
             foreach (CellEntryToRow entry in _headerEntries)

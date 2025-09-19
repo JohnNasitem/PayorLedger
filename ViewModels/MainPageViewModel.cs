@@ -8,26 +8,26 @@
 // TODO: Rework rows, rows should be entries, not each payor. also add date and an incrementing or#
 
 using CommunityToolkit.Mvvm.Input;
+using PayorLedger.Dialogs;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
+using PayorLedger.Pages;
 using PayorLedger.Services.Actions;
+using PayorLedger.Services.Actions.CellCommands;
+using PayorLedger.Services.Actions.HeaderCommands;
+using PayorLedger.Services.Actions.PayorCommands;
+using PayorLedger.Services.Actions.RowCommands;
+using PayorLedger.Services.Actions.SubheaderCommands;
 using PayorLedger.Services.Database;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows.Input;
-using PayorLedger.Dialogs;
 using System.Windows.Media;
-using PayorLedger.Pages;
-using PayorLedger.Services.Actions.HeaderCommands;
-using PayorLedger.Services.Actions.SubheaderCommands;
-using PayorLedger.Services.Actions.PayorCommands;
-using PayorLedger.Services.Actions.CellCommands;
-using PayorLedger.Services.Actions.CommentCommands;
 
 namespace PayorLedger.ViewModels
 {
-    public record CellEditInfo(string ColumnName, int OrNum, decimal NewValue, Month Month, int Year);
-    public record CommentEditInfo(int OrNum, string NewComment);
+    public record CellEditInfo(string ColumnName, int OrNum, decimal NewValue);
+    public record RowEditInfo(int OrNum, string NewComment, string NewDate);
 
     public class MainPageViewModel
     {
@@ -69,7 +69,7 @@ namespace PayorLedger.ViewModels
         public ICommand AddSubheaderCommand { get; }
         public ICommand DeleteSubheaderCommand { get; }
         public ICommand CellEdittedCommand { get; }
-        public ICommand CommentEdittedCommand { get; }
+        public ICommand RowEdittedCommand { get; }
         public ICommand ViewPayorCommand { get; }
         public ICommand OpenPayorWindowCommand { get; }
         public ICommand OpenColumnsWindowCommand { get; }
@@ -97,7 +97,7 @@ namespace PayorLedger.ViewModels
             AddSubheaderCommand = new RelayCommand(ExecuteAddSubheader);
             DeleteSubheaderCommand = new RelayCommand<string>(ExecuteDeleteSubheader);
             CellEdittedCommand = new RelayCommand<CellEditInfo>(ExecuteCellEditted);
-            CommentEdittedCommand = new RelayCommand<CommentEditInfo>(ExecuteCommentEditted);
+            RowEdittedCommand = new RelayCommand<RowEditInfo>(ExecuteRowEditted);
             ViewPayorCommand = new RelayCommand<string>(ExecuteViewPayor);
             OpenPayorWindowCommand = new RelayCommand(ExecuteOpenPayorWindow);
             OpenColumnsWindowCommand = new RelayCommand(ExecuteOpenColumnsWindow);
@@ -507,18 +507,17 @@ namespace PayorLedger.ViewModels
         /// <summary>
         /// Adds edit to the undo/redo stack and edits the cell comment or adds one if it doesn't exist
         /// </summary>
-        /// <param name="commentInfo">Edit info</param>
-        private void ExecuteCommentEditted(CommentEditInfo? commentInfo)
+        /// <param name="rowInfo">Edit info</param>
+        private void ExecuteRowEditted(RowEditInfo? rowInfo)
         {
-            if (commentInfo == null)
+            if (rowInfo == null)
                 return;
 
             // Find associated row
-            RowEntry entry = LedgerRows.Find(e => e.OrNum == commentInfo.OrNum)!;
+            RowEntry entry = LedgerRows.Find(e => e.OrNum == rowInfo.OrNum)!;
 
             // Update entry
-            // TODO: Change this to row edit
-            //_undoRedoService.Execute(new EditCommentCommand(entry, commentInfo.NewComment));
+            _undoRedoService.Execute(new EditRowCommand(entry, rowInfo.NewDate, rowInfo.NewComment));
         }
 
 

@@ -169,20 +169,14 @@ namespace PayorLedger.Pages
         /// <param name="e">Event args</param>
         private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            // Parse the month and year from the table name
-            string[] dateParts = ((MonthTab)((DataGrid)sender).DataContext).Content.TableName.Split('-');
-            Month month = Enum.Parse<Month>(dateParts[0]);
-            int year = int.Parse(dateParts[1]);
-
-            if (e.Column.Header.ToString() == "Comments")
+            if (e.Column.Header.ToString() == "Comments" || e.Column.Header.ToString() == "Date")
             {
                 // Send update to view model
-                ((MainPageViewModel)DataContext).CommentEdittedCommand.Execute(
-                    new CommentEditInfo(
-                        ((DataRowView)e.Row.Item)!.Row["Payor"].ToString()!,
-                        ((TextBox)e.EditingElement).Text,
-                        month,
-                        year
+                ((MainPageViewModel)DataContext).RowEdittedCommand.Execute(
+                    new RowEditInfo(
+                        int.Parse(((DataRowView)e.Row.Item)!.Row["Or #"].ToString()!),
+                        ((DataRowView)e.Row.Item)!.Row["Comments"].ToString()!,
+                        ((DataRowView)e.Row.Item)!.Row["Date"].ToString()!
                     ));
             }
             else
@@ -211,10 +205,8 @@ namespace PayorLedger.Pages
                 ((MainPageViewModel)DataContext).CellEdittedCommand.Execute(
                     new CellEditInfo(
                         ((DataGridColumnHeader)e.Column.Header).Content.ToString()!,
-                        ((DataRowView)e.Row.Item)!.Row["Payor"].ToString()!,
-                        newVal,
-                        month,
-                        year
+                        int.Parse(((DataRowView)e.Row.Item)!.Row["Or #"].ToString()!),
+                        newVal
                     ));
             }
         }

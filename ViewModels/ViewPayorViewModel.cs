@@ -104,9 +104,10 @@ namespace PayorLedger.ViewModels
         private Dictionary<int, List<CellEntryToRow>> GetEntries()
         {
             // Get entries from main page view model
-            return _mainPageVM.LedgerEntries
-                .Where(pe => pe.PayorId == Payor.PayorId && pe.State != ChangeState.Removed)
-                .GroupBy(pe => pe.Year)
+            return _mainPageVM.LedgerRows
+                .SelectMany(r => r.CellEntries)
+                .Where(ce => ce.Row.PayorId == Payor.PayorId && ce.State != ChangeState.Removed)
+                .GroupBy(ce => ce.Row.Year)
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
 

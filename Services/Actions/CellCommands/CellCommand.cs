@@ -41,11 +41,11 @@ namespace PayorLedger.Services.Actions.CellCommands
         protected void AddCell()
         {
             Cell.State = ChangeState.Added;
+            RowEntry row = _mainPageViewModel.LedgerRows.Find(r => r.OrNum == Cell.Row.OrNum)!;
 
             // Add it if it doesnt exist already
-            // It shouldn't but just to be safe
-            if (!_mainPageViewModel.LedgerEntries.Any(e => e.PayorId == Cell.PayorId && e.SubheaderId == Cell.SubheaderId && e.Year == Cell.Year && e.Month == Cell.Month))
-                _mainPageViewModel.LedgerEntries.Add(Cell);
+            if (!row.CellEntries.Any(e => e.SubheaderId == Cell.SubheaderId))
+                row.CellEntries.Add(Cell);
 
             UpdateTables();
         }
@@ -85,7 +85,7 @@ namespace PayorLedger.Services.Actions.CellCommands
         {
             _mainPageViewModel.UpdateUI();
 
-            if (_payorWindowViewModel.ActiveViewPayorViewModel != null && _payorWindowViewModel.ActiveViewPayorViewModel.Payor.PayorId == Cell.PayorId)
+            if (_payorWindowViewModel.ActiveViewPayorViewModel != null && _payorWindowViewModel.ActiveViewPayorViewModel.Payor.PayorId == Cell.Row.PayorId)
                 _payorWindowViewModel.ActiveViewPayorViewModel.UpdateTable();
         }
 

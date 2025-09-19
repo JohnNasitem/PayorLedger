@@ -61,15 +61,11 @@ namespace PayorLedger.Services.Actions.RowCommands
         /// Edit row
         /// </summary>
         /// <param name="newDate">New date of row</param>
-        /// <param name="newOrNum">New or # of row</param>
-        /// <param name="newPayorId">New payor id of row</param>
         /// <param name="newComment">New comment of row</param>
-        protected void EditRow(string newDate, int newOrNum, long newPayorId, string newComment)
+        protected void EditRow(string newDate, string newComment)
         {
             _row.State = ChangeState.Edited;
             _row.Date = newDate;
-            _row.OrNum = newOrNum;
-            _row.PayorId = newPayorId;
             _row.Comment = newComment;
         }
 
