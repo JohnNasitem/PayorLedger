@@ -5,7 +5,7 @@
 //Author: John Nasitem
 //***********************************************************************************
 
-// TODO: Rework rows, rows should be entries, not each payor. also add date and an incrementing or#
+
 
 using CommunityToolkit.Mvvm.Input;
 using PayorLedger.Dialogs;
@@ -273,8 +273,6 @@ namespace PayorLedger.ViewModels
         /// <returns>List of rows for the DataTable</returns>
         private List<DataRow> CreateRows(MonthTab tab, List<DataColumn> columns, List<RowEntry> monthData, MonthTotal monthTotal)
         {
-            // TODO: Add date and or#
-
             List<DataRow> rows = [];
             List<SubheaderEntry> subheaders = GetSubheaders(Headers, true);
 
