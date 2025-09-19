@@ -13,11 +13,24 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock
-            x:Name="UI_PayorName_Tbk"
-            FontSize="20"
-            Grid.Row="0"
-            >Temp</TextBlock>
+        <Grid
+            Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button
+                x:Name="UI_Back_Btn"
+                Content="Back"
+                FontSize="15"
+                Click="UI_Back_Btn_Click"
+                Grid.Column="0"/>
+            <TextBlock
+                x:Name="UI_PayorName_Tbk"
+                TextAlignment="Right"
+                FontSize="20"
+                Grid.Column="1"/>
+        </Grid>
         <DataGrid
             ItemsSource="{Binding PayorTable}"
             x:Name = "UI_Table_Dgd"

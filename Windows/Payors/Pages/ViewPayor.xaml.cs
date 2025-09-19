@@ -55,5 +55,17 @@ namespace PayorLedger.Windows.Payors.Pages
             if (_vm == vm.ActiveViewPayorViewModel)
                 vm.ActiveViewPayorViewModel = null;
         }
+
+
+
+        /// <summary>
+        /// Go back to manage payors page
+        /// </summary>
+        /// <param name="sender">Button</param>
+        /// <param name="e">Event args</param>
+        private void UI_Back_Btn_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            App.ServiceProvider.GetRequiredService<PayorWindowViewModel>().OpenWindow();
+        }
     }
 }
