@@ -64,6 +64,8 @@ namespace PayorLedger.ViewModels
             // Remove unused columns
             _columns.RemoveAll(c => c.ColumnName == "Payor");
             _columns.RemoveAll(c => c.ColumnName == "Comments");
+            _columns.RemoveAll(c => c.ColumnName == "Date");
+            _columns.RemoveAll(c => c.ColumnName == "OR #");
 
             // Add a new Year column at the start
             DataColumn yearCol = new("Year") { AllowDBNull = false, ReadOnly = true };
