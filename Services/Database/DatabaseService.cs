@@ -691,8 +691,6 @@ namespace PayorLedger.Services.Database
         /// <param name="entry">New entry values</param>
         private void EditCellEntry(CellEntryToRow entry)
         {
-            // TODO: Should or num be edittable
-
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Amount = @newAmount WHERE OrNum = @orNum";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
@@ -708,12 +706,11 @@ namespace PayorLedger.Services.Database
         /// <param name="entry">New row values</param>
         private void EditRowEntry(RowEntry entry)
         {
-            // TODO: Should or # and payor be edittable
-
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Date = @date AND Comment = @comment WHERE OrNum = @orNum";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET OrNum = @orNum AND PayorId = @payorId AND Date = @date AND Comment = @comment WHERE OrNum = @orNum";
             cmd.Parameters.AddWithValue("@comment", entry.Comment);
             cmd.Parameters.AddWithValue("@date", entry.Date);
+            cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
             cmd.Parameters.AddWithValue("@orNum", entry.OrNum);
             int affectRows = cmd.ExecuteNonQuery();
         }
