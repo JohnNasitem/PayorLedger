@@ -7,15 +7,10 @@
 
 
 
-using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
-using PayorLedger.Services.Actions;
-using PayorLedger.ViewModels;
 using System.Data.SQLite;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Windows.Input;
 
 namespace PayorLedger.Services.Database
 {
@@ -24,7 +19,7 @@ namespace PayorLedger.Services.Database
         /// <summary>
         /// List of names that are not allowed to be used for payors, headers, or subheaders
         /// </summary>
-        public string[] InvalidNames { get; } = ["", "total", "payor", "comments"];
+        public string[] InvalidNames { get; } = ["", "total", "payor", "comments", "date", "or #"];
 
 
 
