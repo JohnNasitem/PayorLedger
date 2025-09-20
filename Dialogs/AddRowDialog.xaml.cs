@@ -9,6 +9,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Models;
+using PayorLedger.Services.Database;
 using PayorLedger.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -46,12 +47,12 @@ namespace PayorLedger.Dialogs
 
 
 
-        public AddRowDialog()
+        public AddRowDialog(int day, Month month, int year)
         {
             InitializeComponent();
             PopulatePayors();
             UI_RowPayor_Cmb.SelectedIndex = UI_RowPayor_Cmb.Items.Count - 1;
-            RowDate = DateTime.Now.ToString("dd/MM/yyyy");
+            RowDate = $"{(day != -1 ? day.ToString("00") : "??")}/{(int)month:00}/{year:0000}";
             UI_RowDate_Tbx.Text = RowDate;
             UI_RowOrNum_Tbx.Text = (_mainPageVM.LedgerRows.Count > 0 ? _mainPageVM.LedgerRows.Max(r => r.OrNum) + 1 : 1).ToString();
         }

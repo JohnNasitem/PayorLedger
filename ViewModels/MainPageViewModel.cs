@@ -378,7 +378,7 @@ namespace PayorLedger.ViewModels
         /// </summary>
         public void ExecuteAddRow(Month month, int year)
         {
-            AddRowDialog dlg = new();
+            AddRowDialog dlg = new(DateTime.Today.Month == (int)month && DateTime.Today.Year == year ? DateTime.Today.Day : -1, month, year);
 
             if (dlg.ShowDialog() != true)
                 return;
