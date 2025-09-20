@@ -13,6 +13,7 @@ using PayorLedger.Models.Columns;
 using PayorLedger.Services.Actions;
 using PayorLedger.Services.Actions.HeaderCommands;
 using PayorLedger.Services.Actions.SubheaderCommands;
+using PayorLedger.Services.Logger;
 using PayorLedger.Windows.Columns;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -36,7 +37,8 @@ namespace PayorLedger.ViewModels
 
 
 
-        private IUndoRedoService _undoRedoService = App.ServiceProvider.GetRequiredService<IUndoRedoService>();
+        private readonly IUndoRedoService _undoRedoService = App.ServiceProvider.GetRequiredService<IUndoRedoService>();
+        private readonly ILogger _logger = App.ServiceProvider.GetRequiredService<ILogger>();
 
 
 
@@ -112,6 +114,8 @@ namespace PayorLedger.ViewModels
 
                 if (result == true)
                 {
+                    _logger.AddLog($"Attempting to edit subheader. Name: \"{dlg.SubheaderName}\" - Order: \"{dlg.SubheaderOrder}\" - Parent ID: \"{dlg.ParentHeader.Id}\"", Logger.LogType.PreAction);
+
                     _undoRedoService.Execute(new EditSubheaderCommand(subheaderEntry, dlg.SubheaderName, dlg.ParentHeader, dlg.SubheaderOrder));
                 }
             }
@@ -123,6 +127,8 @@ namespace PayorLedger.ViewModels
 
                 if (result == true)
                 {
+                    _logger.AddLog($"Attempting to edit subheader. Name: \"{dlg.HeaderName}\" - Order: \"{dlg.HeaderOrder}\"", Logger.LogType.PreAction);
+
                     _undoRedoService.Execute(new EditHeaderCommand(headerEntry, dlg.HeaderName, dlg.HeaderOrder));
                 }
             }
@@ -150,6 +156,8 @@ namespace PayorLedger.ViewModels
             // Delete column
             if (result == true)
             {
+                _logger.AddLog($"Attempting to delete column. IsHeader: \"{isHeader}\" - Index: \"{index}\" - Columns List Count: \"{Columns.Count}\"", Logger.LogType.PreAction);
+
                 if (isHeader)
                     _undoRedoService.Execute(new DeleteHeaderCommand((HeaderEntry)Columns[index].Value));
                 else

@@ -9,10 +9,12 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Dialogs;
+using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Services.Actions;
 using PayorLedger.Services.Actions.PayorCommands;
 using PayorLedger.Services.Database;
+using PayorLedger.Services.Logger;
 using PayorLedger.Windows.Payors.Pages;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
@@ -35,14 +37,16 @@ namespace PayorLedger.ViewModels
 
 
         private readonly IUndoRedoService _undoRedoService;
+        private readonly ILogger _logger;
         private readonly PayorWindowViewModel _payorWindowVM;
 
 
 
-        public ManagePayorsViewModel(PayorWindowViewModel payorWindowVM, IUndoRedoService undoRedoService, IDatabaseService dbService)
+        public ManagePayorsViewModel(PayorWindowViewModel payorWindowVM, IUndoRedoService undoRedoService, ILogger logger)
         {
             // Initialize global vars
             _undoRedoService = undoRedoService;
+            _logger = logger;
             _payorWindowVM = payorWindowVM;
             Payors = [];
 
@@ -68,6 +72,8 @@ namespace PayorLedger.ViewModels
 
             if (page.ShowDialog() != true || (payor.PayorName == page.PayorName && payor.Label == page.PayorLabel))
                 return;
+
+            _logger.AddLog($"Attempting to edit a payor. Name: \"{page.PayorName}\" - Label: \"{Enum.GetName<PayorEnums.PayorLabel>(page.PayorLabel)}\"", Logger.LogType.PreAction);
 
             // Create a new payor with the data from the dialog
             _undoRedoService.Execute(new EditPayorCommand(payor, page.PayorName, page.PayorLabel));
@@ -109,12 +115,13 @@ namespace PayorLedger.ViewModels
             // Delete payor and their entries
             if (result == true)
             {
+                _logger.AddLog($"Attempting to delete a payor.", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new DeletePayorCommand(payor));
                 UpdateUI();
             }
         }
 
-        
+
 
         /// <summary>
         /// Call AddPayor method from the main page view model
