@@ -15,7 +15,7 @@ namespace PayorLedger.Services.Logger
 {
     public class Logger : ILogger
     {
-        private static readonly string _filePath = $"Logs/{DateTime.UtcNow:yyyy-MM-dd}.txt";
+        private static readonly string _filePath = $"Logs/{DateTime.UtcNow:MMMM dd, yyyy}.txt";
 
 
 
@@ -35,7 +35,7 @@ namespace PayorLedger.Services.Logger
         /// <param name="type">Type of log</param>
         public void AddLog(string message, LogType type)
         {
-            File.AppendAllText(_filePath, $"[{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}] {type.ToString().ToUpper()}: {message + Environment.NewLine}");
+            File.AppendAllText(_filePath, $"[{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}] {type.ToString().ToUpper()}: {message + Environment.NewLine}");
         }
 
 
@@ -45,8 +45,9 @@ namespace PayorLedger.Services.Logger
         /// </summary>
         public enum LogType
         {
-            Action = 0,
-            Error = 1,
+            PreAction,
+            Action,
+            Error,
         }
     }
 }
