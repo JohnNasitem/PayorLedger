@@ -115,6 +115,8 @@ namespace PayorLedger.ViewModels
 
             // Calculate totals
             SetYear(Year);
+
+            Page.SelectCurrentMonth();
         }
 
 

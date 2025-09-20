@@ -356,5 +356,14 @@ namespace PayorLedger.Pages
             UI_AddRow_Btn.IsEnabled = _vm.Payors.Where(p => p.State != ChangeState.Removed).Any();
         }
 
+
+
+        /// <summary>
+        /// Selects the current month tab
+        /// </summary>
+        public void SelectCurrentMonth()
+        {
+            UI_MonthlyLedgers_Tbc.SelectedIndex = DateTime.Today.Month - 1;
+        }
     }
 }
