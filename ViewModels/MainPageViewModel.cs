@@ -296,6 +296,9 @@ namespace PayorLedger.ViewModels
                 // Populate the cells
                 foreach (CellEntryToRow data in dataRow.CellEntries)
                 {
+                    if (data.State == ChangeState.Removed)
+                        continue;
+
                     SubheaderEntry subheader = subheaders.FirstOrDefault(s => s.Id == data.SubheaderId && s.State != ChangeState.Removed)!;
 
                     string colName = $"{subheader.Header.Name}\n{subheader.Name}";
