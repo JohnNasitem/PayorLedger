@@ -715,7 +715,7 @@ namespace PayorLedger.Services.Database
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.CellEntryToRow)} SET Amount = @newAmount WHERE OrNum = @orNum AND SubheaderId = @subheaderId";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
-            cmd.Parameters.AddWithValue("@subheaderId", entry.Row.OrNum);
+            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
             cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
             int affectRows = cmd.ExecuteNonQuery();
         }
