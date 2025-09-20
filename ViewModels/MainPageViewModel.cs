@@ -547,7 +547,7 @@ namespace PayorLedger.ViewModels
             long subheaderId = Headers.Find(h => h.Name == columnNameParts[0])!.Subheaders.Find(s => s.Name == columnNameParts[1])!.Id;
 
             // Find associated entry
-            CellEntryToRow? entry = LedgerRows.SelectMany(r => r.CellEntries).FirstOrDefault(e => e.Row.OrNum == cellInfo.OrNum);
+            CellEntryToRow? entry = LedgerRows.SelectMany(r => r.CellEntries).FirstOrDefault(e => e.SubheaderId == subheaderId);
 
             // Create a new entry if it doesn't exist
             if (entry == null)
