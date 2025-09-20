@@ -573,8 +573,9 @@ namespace PayorLedger.Services.Database
             cmd ??= _sqlConnection.CreateCommand();
 
             cmd.Parameters.Clear();
-            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.CellEntryToRow)} WHERE OrNum = @orNum";
+            cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.CellEntryToRow)} WHERE OrNum = @orNum AND SubHeaderId = @subheaderId";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
+            cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
             cmd.ExecuteNonQuery();
         }
         #endregion
@@ -713,7 +714,7 @@ namespace PayorLedger.Services.Database
         private void EditCellEntry(CellEntryToRow entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.CellEntryToRow)} SET Amount = @newAmount WHERE OrNum = @orNum AND SubheaderId = @subheaderId";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.CellEntryToRow)} SET Amount = @newAmount WHERE OrNum = @orNum AND SubHeaderId = @subheaderId";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
             cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
             cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
