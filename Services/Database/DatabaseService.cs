@@ -119,11 +119,12 @@ namespace PayorLedger.Services.Database
             {
                 using SQLiteCommand cmd = _sqlConnection.CreateCommand();
                 cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS {Enum.GetName(DatabaseTables.CellEntryToRow)}(
-                                        OrNum INTEGER NOT NULL PRIMARY KEY, 
+                                        OrNum INTEGER NOT NULL, 
                                         SubHeaderId INTEGER NOT NULL,
                                         Amount NUMERIC NOT NULL,
-                                        FOREIGN KEY (SubHeaderId) REFERENCES {Enum.GetName(DatabaseTables.Subheader)}(SubHeaderId)
-                                        FOREIGN KEY (OrNum) REFERENCES {Enum.GetName(DatabaseTables.Rows)}(OrNum)
+                                        FOREIGN KEY (SubHeaderId) REFERENCES {Enum.GetName(DatabaseTables.Subheader)}(SubHeaderId),
+                                        FOREIGN KEY (OrNum) REFERENCES {Enum.GetName(DatabaseTables.Rows)}(OrNum),
+                                        Primary Key (OrNum, SubHeaderId)
                                         )";
                 cmd.ExecuteNonQuery();
             }
@@ -712,7 +713,7 @@ namespace PayorLedger.Services.Database
         private void EditCellEntry(CellEntryToRow entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET Amount = @newAmount WHERE OrNum = @orNum";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.CellEntryToRow)} SET Amount = @newAmount WHERE OrNum = @orNum";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
             cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
             int affectRows = cmd.ExecuteNonQuery();
