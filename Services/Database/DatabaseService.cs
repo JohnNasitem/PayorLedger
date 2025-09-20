@@ -13,6 +13,7 @@ using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Actions;
 using PayorLedger.Services.Logger;
+using PayorLedger.ViewModels;
 using System.Data.SQLite;
 
 namespace PayorLedger.Services.Database
@@ -135,11 +136,15 @@ namespace PayorLedger.Services.Database
         /// </summary>
         public void SaveChanges()
         {
-            /*
-            // Get view model data
-            (List<PayorEntry> payors, List<HeaderEntry> headers, List<CellEntryToRow> entries, List<PayorComments> comments) = App.ServiceProvider.GetRequiredService<MainPageViewModel>().GetVMData();
+            ILogger logger = App.ServiceProvider.GetRequiredService<ILogger>();
 
-            List<object> objectsToRemove = [];
+            // Get view model data
+            MainPageViewModel mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
+            List<PayorEntry> payors = mainPageVM.Payors;
+            List<HeaderEntry> headers = mainPageVM.Headers;
+            List<RowEntry> rows = mainPageVM.LedgerRows;
+
+            List<object> objectsToRemoveFromLists = [];
 
             // Sync payor data
             foreach (PayorEntry payor in payors)
@@ -150,16 +155,14 @@ namespace PayorLedger.Services.Database
                         long payorId = AddPayor(payor.PayorName, payor.Label);
 
                         // Replace temp id with new id
-                        foreach (CellEntryToRow entry in entries.Where(e => e.PayorId == payor.PayorId))
+                        foreach (RowEntry entry in rows.Where(e => e.PayorId == payor.PayorId))
                             entry.PayorId = payorId;
-                        foreach (PayorComments comment in comments.Where(c => c.PayorId == payor.PayorId))
-                            comment.PayorId = payorId;
 
                         payor.PayorId = payorId;
                         break;
                     case ChangeState.Removed:
                         DeletePayor(payor.PayorId);
-                        objectsToRemove.Add(payor);
+                        objectsToRemoveFromLists.Add(payor);
                         break;
                     case ChangeState.Edited:
                         EditPayorEntry(payor, payor.PayorName, payor.Label);
@@ -170,9 +173,11 @@ namespace PayorLedger.Services.Database
             }
 
             // Remove deleted payors from list
-            foreach (PayorEntry payor in objectsToRemove.Cast<PayorEntry>())
+            foreach (PayorEntry payor in objectsToRemoveFromLists.Cast<PayorEntry>())
                 payors.RemoveAll(p => p.PayorId == payor.PayorId);
-            objectsToRemove.Clear();
+            objectsToRemoveFromLists.Clear();
+
+            logger.AddLog("Finished saving payor changes!", Logger.Logger.LogType.Action);
 
             // Sync headers
             foreach (HeaderEntry header in headers)
@@ -187,7 +192,7 @@ namespace PayorLedger.Services.Database
                         break;
                     case ChangeState.Removed:
                         DeleteHeader(header.Id);
-                        objectsToRemove.Add(header);
+                        objectsToRemoveFromLists.Add(header);
                         break;
                     case ChangeState.Edited:
                         EditHeaderEntry(header, header.Name, header.Order);
@@ -198,9 +203,11 @@ namespace PayorLedger.Services.Database
             }
 
             // Remove deleted headers from list
-            foreach (HeaderEntry header in objectsToRemove.Cast<HeaderEntry>())
+            foreach (HeaderEntry header in objectsToRemoveFromLists.Cast<HeaderEntry>())
                 headers.RemoveAll(h => h.Id == header.Id);
-            objectsToRemove.Clear();
+            objectsToRemoveFromLists.Clear();
+
+            logger.AddLog("Finished saving header changes!", Logger.Logger.LogType.Action);
 
             // Sync subheaders
             foreach (SubheaderEntry subheader in headers.SelectMany(h => h.Subheaders))
@@ -211,7 +218,7 @@ namespace PayorLedger.Services.Database
                         long subheaderId = AddSubheader(subheader.Name, subheader.Header.Id, subheader.Order);
 
                         // Replace temp id with new id
-                        foreach (CellEntryToRow entry in entries.Where(e => e.SubheaderId == subheader.Id))
+                        foreach (CellEntryToRow entry in rows.SelectMany(r => r.CellEntries).Where(e => e.SubheaderId == subheader.Id))
                             entry.SubheaderId = subheaderId;
 
                         subheader.Id = subheaderId;
@@ -228,58 +235,64 @@ namespace PayorLedger.Services.Database
                 subheader.State = ChangeState.Unchanged;
             }
 
+            logger.AddLog("Finished saving subheader changes!", Logger.Logger.LogType.Action);
+
+            // Sync rows
+            foreach (RowEntry row in rows)
+            {
+                switch (row.State)
+                {
+                    case ChangeState.Added:
+                        AddRowEntry(row);
+                        break;
+                    case ChangeState.Removed:
+                        DeleteRow(row);
+                        objectsToRemoveFromLists.Add(row);
+                        break;
+                    case ChangeState.Edited:
+                        EditRowEntry(row);
+                        break;
+                }
+
+                row.State = ChangeState.Unchanged;
+            }
+
+            // Remove deleted rows from list
+            foreach (RowEntry row in objectsToRemoveFromLists.Cast<RowEntry>())
+                rows.RemoveAll(r=> r.OrNum == row.OrNum);
+            objectsToRemoveFromLists.Clear();
+
+            logger.AddLog("Finished saving row changes!", Logger.Logger.LogType.Action);
+
             // Sync cell entries
-            foreach (CellEntryToRow entry in entries)
+            foreach (CellEntryToRow cellEntry in rows.SelectMany(r => r.CellEntries).Where(c => c.State != ChangeState.Unchanged))
             {
-                switch (entry.State)
+                switch (cellEntry.State)
                 {
                     case ChangeState.Added:
-                        AddCellEntry(entry);
+                        AddCellEntry(cellEntry);
                         break;
                     case ChangeState.Removed:
-                        DeleteCellEntry(entry);
-                        objectsToRemove.Add(entry);
+                        DeleteCellEntry(cellEntry, null);
+                        objectsToRemoveFromLists.Add(cellEntry);
                         break;
                     case ChangeState.Edited:
-                        EditCellEntry(entry);
+                        EditCellEntry(cellEntry);
                         break;
                 }
 
-                entry.State = ChangeState.Unchanged;
+                cellEntry.State = ChangeState.Unchanged;
             }
 
-            // Remove deleted entries from list
-            foreach (CellEntryToRow entry in objectsToRemove.Cast<CellEntryToRow>())
-                entries.RemoveAll(e => e.PayorId == entry.PayorId && e.SubheaderId == entry.SubheaderId && e.Month == entry.Month && e.Year == entry.Year);
-            objectsToRemove.Clear();
+            // Remove deleted cells from the row
+            foreach (CellEntryToRow cellEntry in objectsToRemoveFromLists.Cast<CellEntryToRow>())
+                cellEntry.Row.CellEntries.RemoveAll(c => c.SubheaderId == cellEntry.SubheaderId);
 
-            // Synce comments
-            foreach (PayorComments comment in comments)
-            {
-                switch (comment.State)
-                {
-                    case ChangeState.Added:
-                        AddCommentEntry(comment);
-                        break;
-                    case ChangeState.Removed:
-                        DeleteComment(comment);
-                        objectsToRemove.Add(comment);
-                        break;
-                    case ChangeState.Edited:
-                        EditCommentEntry(comment);
-                        break;
-                }
-                comment.State = ChangeState.Unchanged;
-            }
-
-            // Remove deleted comments from list
-            foreach (PayorComments comment in objectsToRemove.Cast<PayorComments>())
-                comments.RemoveAll(c => c.PayorId == comment.PayorId && c.Month == comment.Month && c.Year == comment.Year);
+            logger.AddLog("Finished saving cell entry changes!", Logger.Logger.LogType.Action);
 
             AllChangesSaved = true;
             App.ServiceProvider.GetRequiredService<IUndoRedoService>().OnChangeOccured(true);
-            */
-            App.ServiceProvider.GetRequiredService<ILogger>().AddLog("Saved Changes", Logger.Logger.LogType.Action);
+            logger.AddLog("All changes saved!", Logger.Logger.LogType.Action);
         }
 
 
@@ -535,6 +548,7 @@ namespace PayorLedger.Services.Database
             using SQLiteTransaction transaction = _sqlConnection.BeginTransaction();
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
 
+            // Delete cell entries first
             foreach (CellEntryToRow cellEntry in row.CellEntries)
                 DeleteCellEntry(cellEntry, cmd);
 
@@ -553,8 +567,10 @@ namespace PayorLedger.Services.Database
         /// </summary>
         /// <param name="entry">Entry to delete</param>
         /// <param name="cmd">Existing SQLiteCommand</param>
-        private void DeleteCellEntry(CellEntryToRow entry, SQLiteCommand cmd)
+        private void DeleteCellEntry(CellEntryToRow entry, SQLiteCommand? cmd)
         {
+            cmd ??= _sqlConnection.CreateCommand();
+
             cmd.Parameters.Clear();
             cmd.CommandText = $@"DELETE from {Enum.GetName(DatabaseTables.CellEntryToRow)} WHERE OrNum = @orNum";
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
