@@ -52,11 +52,12 @@ namespace PayorLedger.Services.Actions
         /// <param name="command"></param>
         public void Execute(IUndoableCommand command)
         {
-            _logger.AddLog($"{command.GetType()}", Logger.Logger.LogType.Action);
             command.Execute();
+            _logger.AddLog($"{command.GetType()}", Logger.Logger.LogType.Action);
             _undoStack.Push(command);
             _redoStack.Clear();
             OnChangeOccured(false);
+
         }
 
 
