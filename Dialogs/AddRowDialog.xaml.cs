@@ -135,6 +135,18 @@ namespace PayorLedger.Dialogs
 
 
 
+        /// <summary>
+        /// Check for enter
+        /// </summary>
+        /// <param name="sender">Window</param>
+        /// <param name="e">Event args</param>
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            UI_AddRow_Btn_Click(sender, e);
+        }
+
+
+
         // Update button state on change
         private void UI_RowDate_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
         private void UI_RowOrNum_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();

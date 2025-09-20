@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         FontSize="16"
         WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown"
         Title="Add A New Row" Height="330" Width="300">
     <Grid>
         <Grid.ColumnDefinitions>
