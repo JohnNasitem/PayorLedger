@@ -730,7 +730,7 @@ namespace PayorLedger.Services.Database
         private void EditRowEntry(RowEntry entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET OrNum = @orNum AND PayorId = @payorId AND Date = @date AND Comment = @comment WHERE OrNum = @orNum";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET OrNum = @orNum, PayorId = @payorId, Date = @date, Comment = @comment WHERE OrNum = @orNum";
             cmd.Parameters.AddWithValue("@comment", entry.Comment);
             cmd.Parameters.AddWithValue("@date", entry.Date);
             cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
