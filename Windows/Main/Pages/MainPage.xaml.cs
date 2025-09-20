@@ -17,7 +17,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace PayorLedger.Pages
 {
@@ -343,7 +342,7 @@ namespace PayorLedger.Pages
         /// <param name="e">Event args</param>
         private void UI_AddRow_Btn_Click(object sender, RoutedEventArgs e)
         {
-            string[] dateParts = ((MonthTab)((TabItem)UI_MonthlyLedgers_Tbc.ItemContainerGenerator.ContainerFromIndex(0)).Header).Content.TableName.Split('-');
+            string[] dateParts = ((MonthTab)UI_MonthlyLedgers_Tbc.SelectedContent).Content.TableName.Split('-');
             _vm.ExecuteAddRow(Enum.Parse<Month>(dateParts[0]), int.Parse(dateParts[1]));
         }
 
