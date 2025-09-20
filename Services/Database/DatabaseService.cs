@@ -7,9 +7,12 @@
 
 
 
+using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
+using PayorLedger.Services.Actions;
+using PayorLedger.Services.Logger;
 using System.Data.SQLite;
 
 namespace PayorLedger.Services.Database
@@ -276,6 +279,7 @@ namespace PayorLedger.Services.Database
             AllChangesSaved = true;
             App.ServiceProvider.GetRequiredService<IUndoRedoService>().OnChangeOccured(true);
             */
+            App.ServiceProvider.GetRequiredService<ILogger>().AddLog("Saved Changes", Logger.Logger.LogType.Action);
         }
 
 

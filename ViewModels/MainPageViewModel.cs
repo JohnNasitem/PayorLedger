@@ -9,6 +9,7 @@
 
 using CommunityToolkit.Mvvm.Input;
 using PayorLedger.Dialogs;
+using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Pages;
@@ -19,8 +20,10 @@ using PayorLedger.Services.Actions.PayorCommands;
 using PayorLedger.Services.Actions.RowCommands;
 using PayorLedger.Services.Actions.SubheaderCommands;
 using PayorLedger.Services.Database;
+using PayorLedger.Services.Logger;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Dynamic;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -57,6 +60,7 @@ namespace PayorLedger.ViewModels
         // Services
         private readonly IUndoRedoService _undoRedoService;
         private readonly IDatabaseService _dbService;
+        private readonly ILogger _logger;
 
 
 
@@ -72,19 +76,19 @@ namespace PayorLedger.ViewModels
         public ICommand EditRowCommand { get; }
         public ICommand CellEdittedCommand { get; }
         public ICommand CommentEdittedCommand { get; }
-        public ICommand ViewPayorCommand { get; }
         public ICommand OpenPayorWindowCommand { get; }
         public ICommand OpenColumnsWindowCommand { get; }
         #endregion
 
 
 
-        public MainPageViewModel(IUndoRedoService undoRedoService, IDatabaseService dbService, PayorWindowViewModel payorWindowVM, ColumnsWindowViewModel columnsWindowVM)
+        public MainPageViewModel(IUndoRedoService undoRedoService, IDatabaseService dbService, ILogger logger, PayorWindowViewModel payorWindowVM, ColumnsWindowViewModel columnsWindowVM)
         {
             Year = DateTime.Now.Year;
             Page = new MainPage(this);
             _undoRedoService = undoRedoService;
             _dbService = dbService;
+            _logger = logger;
             _payorWindowVM = payorWindowVM;
             _columnsWindowVM = columnsWindowVM;
 
@@ -101,7 +105,6 @@ namespace PayorLedger.ViewModels
             EditRowCommand = new RelayCommand<string>(ExecuteEditRow);
             CellEdittedCommand = new RelayCommand<CellEditInfo>(ExecuteCellEditted);
             CommentEdittedCommand = new RelayCommand<CommentEditInfo>(ExecuteEditComment);
-            ViewPayorCommand = new RelayCommand<string>(ExecuteViewPayor);
             OpenPayorWindowCommand = new RelayCommand(ExecuteOpenPayorWindow);
             OpenColumnsWindowCommand = new RelayCommand(ExecuteOpenColumnsWindow);
 
@@ -380,6 +383,8 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
+            _logger.AddLog($"Attempting to add row. Date: \"{dlg.RowDate}\" - Or #: \"{dlg.RowOrNum}\" - Payor ID: \"{dlg.RowPayorId}\" - Month: \"{Enum.GetName<Month>(month)}\" Year: \"{year}\"", Logger.LogType.PreAction);
+
             _undoRedoService.Execute(new AddRowCommand(new RowEntry(dlg.RowDate, dlg.RowOrNum, dlg.RowPayorId, month, year, "", ChangeState.Added, [])));
         }
 
@@ -394,6 +399,8 @@ namespace PayorLedger.ViewModels
 
             if (dlg.ShowDialog() != true)
                 return;
+
+            _logger.AddLog($"Attempting to add payor. Name: \"{dlg.PayorName}\" - Label: \"{Enum.GetName<PayorEnums.PayorLabel>(dlg.PayorLabel)}\"", Logger.LogType.PreAction);
 
             // Create a new payor with the data from the dialog
             _undoRedoService.Execute(new AddPayorCommand(new PayorEntry(-1, dlg.PayorName, dlg.PayorLabel, ChangeState.Added)));
@@ -413,6 +420,8 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
+            _logger.AddLog($"Attempting to add header. Name: \"{dlg.HeaderName}\" - Order: \"{dlg.HeaderOrder}\"", Logger.LogType.PreAction);
+
             // Create a new header with the data from the dialog
             _undoRedoService.Execute(new AddHeaderCommand(new HeaderEntry(-1, dlg.HeaderName, dlg.HeaderOrder, ChangeState.Added)));
         }
@@ -429,6 +438,8 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
+            _logger.AddLog($"Attempting to add subheader. Name: \"{dlg.SubheaderName}\" - Order: \"{dlg.SubheaderOrder}\" - Parent Header ID: \"{dlg.ParentHeader.Id}\"", Logger.LogType.PreAction);
+
             HeaderEntry parentHeader = Headers.Find(h => h.Id == dlg.ParentHeader.Id)!;
 
             // Create a new subheader with the data from the dialog
@@ -442,6 +453,8 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void ExecuteSaveLedger()
         {
+            _logger.AddLog($"Attempting to save changes.", Logger.LogType.PreAction);
+
             _dbService.SaveChanges();
         }
 
@@ -452,6 +465,8 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void ExecuteUndo()
         {
+            _logger.AddLog($"Attempting to undo", Logger.LogType.PreAction);
+
             _undoRedoService.Undo();
         }
 
@@ -462,6 +477,8 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void ExecuteRedo()
         {
+            _logger.AddLog($"Attempting to redo", Logger.LogType.PreAction);
+
             _undoRedoService.Redo();
         }
 
@@ -475,6 +492,8 @@ namespace PayorLedger.ViewModels
         {
             if (columnName == null)
                 return;
+
+            _logger.AddLog($"Attempting to delete subheader (right click on column). Column Name: \"{columnName}\"", Logger.LogType.PreAction);
 
             // Extra header name and subheader name
             string[] nameParts = columnName.Split('\n');
@@ -507,6 +526,8 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
+            _logger.AddLog($"Attempting to edit a row. Payor ID: \"{dlg.RowPayorId}\" - Or #: \"{dlg.RowOrNum}\" - Date: \"{dlg.RowDate}\" - Comment: \"{row.Comment}\"", Logger.LogType.PreAction);
+
             _undoRedoService.Execute(new EditRowCommand(row, dlg.RowPayorId, dlg.RowOrNum, dlg.RowDate, row.Comment));
         }
 
@@ -532,14 +553,21 @@ namespace PayorLedger.ViewModels
             if (entry == null)
             {
                 entry = new CellEntryToRow(LedgerRows.Find(r => r.OrNum == cellInfo.OrNum)!, subheaderId, cellInfo.NewValue, ChangeState.Added);
+                _logger.AddLog($"Attempting to add a cell entry. Or #: {cellInfo.OrNum} - Subheader ID: \"{subheaderId}\" - Value: \"{cellInfo.NewValue}\"", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new AddCellCommand(entry));
             }
             // Delete entry if value is 0
             else if (cellInfo.NewValue == 0)
+            {
+                _logger.AddLog($"Attempting to delete a cell entry.", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new DeleteCellCommand(entry));
+            }
             // Update entry
             else
+            {
+                _logger.AddLog($"Attempting to edit a cell entry. Value: \"{cellInfo.NewValue}\"", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new EditCellCommand(entry, cellInfo.NewValue));
+            }
 
         }
 
@@ -554,25 +582,13 @@ namespace PayorLedger.ViewModels
             if (rowInfo == null)
                 return;
 
+            _logger.AddLog($"Attempting to edit a comment. Comment: \"{rowInfo.NewComment}\" - Or #: \"{rowInfo.OrNum}\"", Logger.LogType.PreAction);
+
             // Find associated row
             RowEntry entry = LedgerRows.Find(e => e.OrNum == rowInfo.OrNum)!;
 
             // Update row
             _undoRedoService.Execute(new EditRowCommand(entry, entry.PayorId, entry.OrNum, entry.Date, rowInfo.NewComment));
-        }
-
-
-
-        /// <summary>
-        /// Open view payor page 
-        /// </summary>
-        /// <param name="payorName">Name of payor being viewed</param>
-        private void ExecuteViewPayor(string? payorName)
-        {
-            if (payorName == null || payorName == "Total")
-                return;
-
-            _payorWindowVM.ViewPayor(payorName);
         }
 
 
