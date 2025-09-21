@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         FontSize="16"
         WindowStartupLocation="CenterScreen"
-        Title="Add A New Payor" Height="250" Width="300">
+        Title="Add A New Payor" Height="180" Width="300">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
