@@ -50,7 +50,7 @@ namespace PayorLedger
 
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
-                Exception ex = e.ExceptionObject as Exception;
+                Exception? ex = e.ExceptionObject as Exception;
 
                 if (ex != null)
                 {
@@ -61,7 +61,7 @@ namespace PayorLedger
                     logger.AddLog("Non-UI Exception (unknown type): " + e.ExceptionObject, Logger.LogType.Error);
                 }
 
-                App.Current.Dispatcher.Invoke(() =>
+                Current.Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show("Error occured! Send the log file to John then restart the application.");
                 });
