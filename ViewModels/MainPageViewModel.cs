@@ -9,7 +9,6 @@
 
 using CommunityToolkit.Mvvm.Input;
 using PayorLedger.Dialogs;
-using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Pages;
@@ -388,9 +387,9 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
-            _logger.AddLog($"Attempting to add row. Date: \"{dlg.RowDate}\" - Or #: \"{dlg.RowOrNum}\" - Payor ID: \"{dlg.RowPayorId}\" - Month: \"{Enum.GetName<Month>(month)}\" Year: \"{year}\"", Logger.LogType.PreAction);
+            _logger.AddLog($"Attempting to add row. Label: \"{Enum.GetName<RowEntry.RowLabel>(dlg.RowLabel)}\" - Date: \"{dlg.RowDate}\" - Or #: \"{dlg.RowOrNum}\" - Payor ID: \"{dlg.RowPayorId}\" - Month: \"{Enum.GetName<Month>(month)}\" Year: \"{year}\"", Logger.LogType.PreAction);
 
-            _undoRedoService.Execute(new AddRowCommand(new RowEntry(dlg.RowDate, dlg.RowOrNum, dlg.RowPayorId, month, year, "", ChangeState.Added, [])));
+            _undoRedoService.Execute(new AddRowCommand(new RowEntry(dlg.RowLabel, dlg.RowDate, dlg.RowOrNum, dlg.RowPayorId, month, year, "", ChangeState.Added, [])));
         }
 
 
@@ -405,10 +404,10 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
-            _logger.AddLog($"Attempting to add payor. Name: \"{dlg.PayorName}\" - Label: \"{Enum.GetName<PayorEnums.PayorLabel>(dlg.PayorLabel)}\"", Logger.LogType.PreAction);
+            _logger.AddLog($"Attempting to add payor. Name: \"{dlg.PayorName}\"", Logger.LogType.PreAction);
 
             // Create a new payor with the data from the dialog
-            _undoRedoService.Execute(new AddPayorCommand(new PayorEntry(-1, dlg.PayorName, dlg.PayorLabel, ChangeState.Added)));
+            _undoRedoService.Execute(new AddPayorCommand(new PayorEntry(-1, dlg.PayorName, ChangeState.Added)));
 
             Page.UpdateAddRowButtonState();
         }
@@ -531,9 +530,9 @@ namespace PayorLedger.ViewModels
             if (dlg.ShowDialog() != true)
                 return;
 
-            _logger.AddLog($"Attempting to edit a row. Payor ID: \"{dlg.RowPayorId}\" - Or #: \"{dlg.RowOrNum}\" - Date: \"{dlg.RowDate}\" - Comment: \"{row.Comment}\"", Logger.LogType.PreAction);
+            _logger.AddLog($"Attempting to edit a row. Label: \"{Enum.GetName<RowEntry.RowLabel>(dlg.RowLabel)}\" - Payor ID: \"{dlg.RowPayorId}\" - Or #: \"{dlg.RowOrNum}\" - Date: \"{dlg.RowDate}\" - Comment: \"{row.Comment}\"", Logger.LogType.PreAction);
 
-            _undoRedoService.Execute(new EditRowCommand(row, dlg.RowPayorId, dlg.RowOrNum, dlg.RowDate, row.Comment));
+            _undoRedoService.Execute(new EditRowCommand(row, dlg.RowLabel, dlg.RowPayorId, dlg.RowOrNum, dlg.RowDate, row.Comment));
         }
 
 
@@ -593,7 +592,7 @@ namespace PayorLedger.ViewModels
             RowEntry entry = LedgerRows.Find(e => e.OrNum == rowInfo.OrNum)!;
 
             // Update row
-            _undoRedoService.Execute(new EditRowCommand(entry, entry.PayorId, entry.OrNum, entry.Date, rowInfo.NewComment));
+            _undoRedoService.Execute(new EditRowCommand(entry, entry.Label, entry.PayorId, entry.OrNum, entry.Date, rowInfo.NewComment));
         }
 
 

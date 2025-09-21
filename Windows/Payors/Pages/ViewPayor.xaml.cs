@@ -37,7 +37,7 @@ namespace PayorLedger.Windows.Payors.Pages
         /// <param name="payor">Payor</param>
         private void SetPayorName(PayorEntry payor)
         {
-            UI_PayorName_Tbk.Text = $"{payor.PayorName} - {payor.Label}";
+            UI_PayorName_Tbk.Text = payor.PayorName;
         }
 
 

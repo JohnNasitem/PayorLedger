@@ -7,7 +7,6 @@
 
 
 
-using PayorLedger.Enums;
 using PayorLedger.Models;
 
 namespace PayorLedger.Services.Actions.PayorCommands
@@ -16,16 +15,12 @@ namespace PayorLedger.Services.Actions.PayorCommands
     {
         private string _originalName;
         private string _newName;
-        private PayorEnums.PayorLabel _originalLabel;
-        private PayorEnums.PayorLabel _newLabel;
 
 
 
-        public EditPayorCommand(PayorEntry payor, string newName, PayorEnums.PayorLabel newLabel) : base(payor)
+        public EditPayorCommand(PayorEntry payor, string newName) : base(payor)
         {
-            _originalLabel = payor.Label;
             _originalName = payor.PayorName;
-            _newLabel = newLabel;
             _newName = newName;
         }
 
@@ -34,13 +29,13 @@ namespace PayorLedger.Services.Actions.PayorCommands
         /// <summary>
         /// Execute the command to edit a payor
         /// </summary>
-        public override void Execute() => EditPayor(_newName, _newLabel);
+        public override void Execute() => EditPayor(_newName);
 
 
 
         /// <summary>
         /// Undo the command to edit a payor
         /// </summary>
-        public override void Undo() => EditPayor(_originalName, _originalLabel);
+        public override void Undo() => EditPayor(_originalName);
     }
 }

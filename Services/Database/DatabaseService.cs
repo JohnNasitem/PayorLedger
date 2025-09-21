@@ -8,7 +8,6 @@
 
 
 using Microsoft.Extensions.DependencyInjection;
-using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Actions;
@@ -66,8 +65,7 @@ namespace PayorLedger.Services.Database
                 using SQLiteCommand cmd = _sqlConnection.CreateCommand();
                 cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS {Enum.GetName(DatabaseTables.Payor)}(
                                         PayorId INTEGER PRIMARY KEY AUTOINCREMENT, 
-                                        PayorName TEXT NOT NULL,
-                                        Label TEXT NOT NULL
+                                        PayorName TEXT NOT NULL
                                         )";
                 cmd.ExecuteNonQuery();
             }
@@ -103,6 +101,7 @@ namespace PayorLedger.Services.Database
             {
                 using SQLiteCommand cmd = _sqlConnection.CreateCommand();
                 cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS {Enum.GetName(DatabaseTables.Rows)}(
+                                        Label TEXT NOT NULL,
                                         Date TEXT NOT NULL,
                                         OrNum INTEGER NOT NULL PRIMARY KEY,
                                         PayorId INTEGER NOT NULL,
@@ -153,7 +152,7 @@ namespace PayorLedger.Services.Database
                 switch (payor.State)
                 {
                     case ChangeState.Added:
-                        long payorId = AddPayor(payor.PayorName, payor.Label);
+                        long payorId = AddPayor(payor.PayorName);
 
                         // Replace temp id with new id
                         foreach (RowEntry entry in rows.Where(e => e.PayorId == payor.PayorId))
@@ -166,7 +165,7 @@ namespace PayorLedger.Services.Database
                         objectsToRemoveFromLists.Add(payor);
                         break;
                     case ChangeState.Edited:
-                        EditPayorEntry(payor, payor.PayorName, payor.Label);
+                        EditPayorEntry(payor, payor.PayorName);
                         break;
                 }
 
@@ -316,6 +315,7 @@ namespace PayorLedger.Services.Database
                 while (reader.Read())
                 {
                     rows.Add(new RowEntry(
+                        label: Enum.Parse<RowEntry.RowLabel>(reader["Label"].ToString()!),
                         date: reader["Date"].ToString()!,
                         orNum: int.Parse(reader["OrNum"].ToString()!),
                         payorId: long.Parse(reader["PayorId"].ToString()!),
@@ -448,7 +448,6 @@ namespace PayorLedger.Services.Database
                     payors.Add(new PayorEntry(
                         payorId: long.Parse(reader["PayorId"].ToString()!),
                         payorName: reader["PayorName"].ToString()!,
-                        label: Enum.Parse<PayorEnums.PayorLabel>(reader["Label"].ToString()!),
                         state: ChangeState.Unchanged
                     ));
                 }
@@ -587,14 +586,12 @@ namespace PayorLedger.Services.Database
         /// Add a payor to the database
         /// </summary>
         /// <param name="payorName">Name of payor</param>
-        /// <param name="label">Label of the payor</param>
         /// <returns>Id of the new payor</returns>
-        private long AddPayor(string payorName, PayorEnums.PayorLabel label)
+        private long AddPayor(string payorName)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Payor)} (PayorName, Label) VALUES (@payorName, @label)";
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Payor)} (PayorName) VALUES (@payorName)";
             cmd.Parameters.AddWithValue("@payorName", payorName);
-            cmd.Parameters.AddWithValue("@label", label.ToString());
             cmd.ExecuteNonQuery();
 
             cmd.CommandText = "SELECT last_insert_rowid();";
@@ -611,17 +608,14 @@ namespace PayorLedger.Services.Database
         /// <returns>Id of the new header</returns>
         private long AddHeader(string headerName, int headerOrder)
         {
-            // Add entry to the header table
-            using (SQLiteCommand cmd = _sqlConnection.CreateCommand())
-            {
-                cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Header)} (HeaderName, HeaderOrder) VALUES (@headerName, @headerOrder)";
-                cmd.Parameters.AddWithValue("@headerName", headerName);
-                cmd.Parameters.AddWithValue("@headerOrder", headerOrder);
-                cmd.ExecuteNonQuery();
+            using SQLiteCommand cmd = _sqlConnection.CreateCommand();
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Header)} (HeaderName, HeaderOrder) VALUES (@headerName, @headerOrder)";
+            cmd.Parameters.AddWithValue("@headerName", headerName);
+            cmd.Parameters.AddWithValue("@headerOrder", headerOrder);
+            cmd.ExecuteNonQuery();
 
-                cmd.CommandText = "SELECT last_insert_rowid();";
-                return (long)cmd.ExecuteScalar();
-            }
+            cmd.CommandText = "SELECT last_insert_rowid();";
+            return (long)cmd.ExecuteScalar();
         }
 
 
@@ -636,18 +630,15 @@ namespace PayorLedger.Services.Database
         /// <exception cref="ArgumentException">Throws exception if the specified table isnt <see cref="DatabaseTables.Payor"/>, <see cref="DatabaseTables.Header"/>, or <see cref="DatabaseTables.Subheader"/></exception> 
         private long AddSubheader(string subheaderName, long headerId, int subheaderOrder)
         {
-            // Add entry to the subheader table
-            using (SQLiteCommand cmd = _sqlConnection.CreateCommand())
-            {
-                cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Subheader)} (SubheaderName, HeaderId, SubHeaderOrder) VALUES (@subheaderName, @headerId, @subHeaderOrder)";
-                cmd.Parameters.AddWithValue("@subheaderName", subheaderName);
-                cmd.Parameters.AddWithValue("@headerId", headerId);
-                cmd.Parameters.AddWithValue("@subHeaderOrder", subheaderOrder);
-                cmd.ExecuteNonQuery();
+            using SQLiteCommand cmd = _sqlConnection.CreateCommand();
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Subheader)} (SubheaderName, HeaderId, SubHeaderOrder) VALUES (@subheaderName, @headerId, @subHeaderOrder)";
+            cmd.Parameters.AddWithValue("@subheaderName", subheaderName);
+            cmd.Parameters.AddWithValue("@headerId", headerId);
+            cmd.Parameters.AddWithValue("@subHeaderOrder", subheaderOrder);
+            cmd.ExecuteNonQuery();
 
-                cmd.CommandText = "SELECT last_insert_rowid();";
-                return (long)cmd.ExecuteScalar();
-            }
+            cmd.CommandText = "SELECT last_insert_rowid();";
+            return (long)cmd.ExecuteScalar();
         }
 
 
@@ -659,7 +650,8 @@ namespace PayorLedger.Services.Database
         private void AddRowEntry(RowEntry entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Rows)} (Date, OrNum, PayorId, Comment, Month, Year) VALUES (@date, @orNum, @payorId, @comment, @month, @year)";
+            cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Rows)} (Label, Date, OrNum, PayorId, Comment, Month, Year) VALUES (@label, @date, @orNum, @payorId, @comment, @month, @year)";
+            cmd.Parameters.AddWithValue("@label", entry.Label.ToString());
             cmd.Parameters.AddWithValue("@date", entry.Date);
             cmd.Parameters.AddWithValue("@orNum", entry.OrNum);
             cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
@@ -695,12 +687,11 @@ namespace PayorLedger.Services.Database
         /// <param name="payor">Payor to edit</param>
         /// /// <param name="newName">New payor name</param>
         /// /// <param name="newLabel">New payor label</param>
-        private void EditPayorEntry(PayorEntry payor, string newName, PayorEnums.PayorLabel newLabel)
+        private void EditPayorEntry(PayorEntry payor, string newName)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Payor)} SET PayorName = @payorName, Label = @label WHERE PayorId = @payorId";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Payor)} SET PayorName = @payorName WHERE PayorId = @payorId";
             cmd.Parameters.AddWithValue("@payorName", newName);
-            cmd.Parameters.AddWithValue("@label", newLabel.ToString());
             cmd.Parameters.AddWithValue("@payorId", payor.PayorId);
             cmd.ExecuteNonQuery();
         }
@@ -730,7 +721,8 @@ namespace PayorLedger.Services.Database
         private void EditRowEntry(RowEntry entry)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
-            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET OrNum = @orNum, PayorId = @payorId, Date = @date, Comment = @comment WHERE OrNum = @orNum";
+            cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Rows)} SET OrNum = @orNum, Label = @label, PayorId = @payorId, Date = @date, Comment = @comment WHERE OrNum = @orNum";
+            cmd.Parameters.AddWithValue("@label", entry.Label.ToString());
             cmd.Parameters.AddWithValue("@comment", entry.Comment);
             cmd.Parameters.AddWithValue("@date", entry.Date);
             cmd.Parameters.AddWithValue("@payorId", entry.PayorId);

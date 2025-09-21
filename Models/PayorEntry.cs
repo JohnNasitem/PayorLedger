@@ -7,7 +7,6 @@
 
 
 
-using PayorLedger.Enums;
 using PayorLedger.Services.Database;
 
 namespace PayorLedger.Models
@@ -31,12 +30,6 @@ namespace PayorLedger.Models
         public string PayorName { get; set; }
 
 
-        /// <summary>
-        /// Payor label
-        /// </summary>
-        public PayorEnums.PayorLabel Label { get; set; }
-
-
 
         /// <summary>
         /// State of the object in relation to the database
@@ -45,7 +38,7 @@ namespace PayorLedger.Models
 
 
 
-        public PayorEntry(long payorId, string payorName, PayorEnums.PayorLabel label, ChangeState state)
+        public PayorEntry(long payorId, string payorName, ChangeState state)
         {
             if (payorId == -1)
             {
@@ -56,7 +49,6 @@ namespace PayorLedger.Models
                 PayorId = payorId;
 
             PayorName = payorName;
-            Label = label;
             State = state;
         }
     }

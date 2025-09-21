@@ -13,6 +13,8 @@ namespace PayorLedger.Services.Actions.RowCommands
 {
     public class EditRowCommand : RowCommand
     {
+        private RowEntry.RowLabel _originalLabel;
+        private RowEntry.RowLabel _newLabel;
         private long _originalPayorId;
         private long _newPayorId;
         private int _originalOrNum;
@@ -24,8 +26,10 @@ namespace PayorLedger.Services.Actions.RowCommands
 
 
 
-        public EditRowCommand(RowEntry row, long newPayorId, int newOrNum, string newDate, string newComment) : base(row)
+        public EditRowCommand(RowEntry row, RowEntry.RowLabel newLabel, long newPayorId, int newOrNum, string newDate, string newComment) : base(row)
         {
+            _originalLabel = row.Label;
+            _newLabel = newLabel;
             _originalPayorId = row.PayorId;
             _newPayorId = newPayorId;
             _originalOrNum = row.OrNum;
@@ -40,13 +44,13 @@ namespace PayorLedger.Services.Actions.RowCommands
         /// <summary>
         /// Execute the command to add a row
         /// </summary>
-        public override void Execute() => EditRow(_newPayorId, _newOrNum, _newDate, _newComment);
+        public override void Execute() => EditRow(_newLabel, _newPayorId, _newOrNum, _newDate, _newComment);
 
 
 
         /// <summary>
         /// Undo the command to add a row
         /// </summary>
-        public override void Undo() => EditRow(_originalPayorId, _originalOrNum, _originalDate, _originalComment);
+        public override void Undo() => EditRow(_originalLabel, _originalPayorId, _originalOrNum, _originalDate, _originalComment);
     }
 }

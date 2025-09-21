@@ -7,7 +7,6 @@
 
 
 using Microsoft.Extensions.DependencyInjection;
-using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Services.Database;
 using PayorLedger.ViewModels;
@@ -63,11 +62,9 @@ namespace PayorLedger.Services.Actions.PayorCommands
         /// Edit a payor's name and label
         /// </summary>
         /// <param name="newName">New name</param>
-        /// <param name="newLabel"></param>
-        protected void EditPayor(string newName, PayorEnums.PayorLabel newLabel)
+        protected void EditPayor(string newName)
         {
             _payor.PayorName = newName;
-            _payor.Label = newLabel;
             _payor.State = ChangeState.Edited;
 
             UpdateUI();

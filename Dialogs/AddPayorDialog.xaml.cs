@@ -9,7 +9,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Services.Database;
 using PayorLedger.ViewModels;
@@ -29,13 +28,6 @@ namespace PayorLedger.Dialogs
 
 
 
-        /// <summary>
-        /// Assigned label
-        /// </summary>
-        public PayorEnums.PayorLabel PayorLabel { get; private set; } = PayorEnums.PayorLabel.Other;
-
-
-
         private readonly PayorEntry? _existingPayor = null;
         private MainPageViewModel _mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
         private string[] _invalidNames = App.ServiceProvider.GetRequiredService<IDatabaseService>().InvalidNames;
@@ -47,11 +39,6 @@ namespace PayorLedger.Dialogs
         public AddPayorDialog()
         {
             InitializeComponent();
-            UI_PayorLabel_Cmb.ItemsSource = Enum.GetValues<PayorEnums.PayorLabel>()
-                                                .Cast<PayorEnums.PayorLabel>()
-                                                .Select(x => new DropDownItem { Name = x.ToString(), Value = x })
-                                                .ToList();
-            UI_PayorLabel_Cmb.DisplayMemberPath = "Name";
         }
 
 
@@ -63,12 +50,6 @@ namespace PayorLedger.Dialogs
         public AddPayorDialog(PayorEntry existingPayor)
         {
             InitializeComponent();
-            UI_PayorLabel_Cmb.ItemsSource = Enum.GetValues<PayorEnums.PayorLabel>()
-                                                .Cast<PayorEnums.PayorLabel>()
-                                                .Select(x => new DropDownItem { Name = x.ToString(), Value = x })
-                                                .ToList();
-            UI_PayorLabel_Cmb.SelectedIndex = (int)existingPayor.Label;
-            UI_PayorLabel_Cmb.DisplayMemberPath = "Name";
             UI_PayorName_Tbx.Text = existingPayor.PayorName;
             UI_WindowPrompt_Lbl.Content = "Edit Payor";
             UI_AddPayor_Btn.Content = "Save Changes";
@@ -95,8 +76,7 @@ namespace PayorLedger.Dialogs
             UI_Status_Lbl.Visibility = Visibility.Hidden;
 
             // Enable button if both fields have a valid input
-            UI_AddPayor_Btn.IsEnabled = UI_PayorName_Tbx.Text.Trim().Length > 0 &&
-                                         UI_PayorLabel_Cmb.SelectedItem != null;
+            UI_AddPayor_Btn.IsEnabled = UI_PayorName_Tbx.Text.Trim().Length > 0;
         }
 
 
@@ -109,7 +89,6 @@ namespace PayorLedger.Dialogs
         private void UI_AddPayor_Btn_Click(object sender, RoutedEventArgs e)
         {
             PayorName = UI_PayorName_Tbx.Text.Trim();
-            PayorLabel = ((DropDownItem)UI_PayorLabel_Cmb.SelectedItem).Value;
             DialogResult = true;
         }
 
@@ -119,17 +98,5 @@ namespace PayorLedger.Dialogs
         /// Update the Add button when the payor name or the selected label changes.
         /// </summary>
         private void UI_PayorName_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
-        private void UI_PayorLabel_Cmb_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateButton();
-
-
-
-        /// <summary>
-        /// Struct to hold the drop down item values
-        /// </summary>
-        private struct DropDownItem
-        {
-            public string Name { get; set; }
-            public PayorEnums.PayorLabel Value { get; set; }
-        }
     }
 }

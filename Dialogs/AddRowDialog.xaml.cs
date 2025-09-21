@@ -22,6 +22,13 @@ namespace PayorLedger.Dialogs
     public partial class AddRowDialog : Window
     {
         /// <summary>
+        /// Label of row
+        /// </summary>
+        public RowEntry.RowLabel RowLabel { get; private set; } = RowEntry.RowLabel.Other;
+
+
+
+        /// <summary>
         /// Date of row
         /// </summary>
         public string RowDate { get; private set; } = string.Empty;
@@ -50,7 +57,7 @@ namespace PayorLedger.Dialogs
         public AddRowDialog(int day, Month month, int year)
         {
             InitializeComponent();
-            PopulatePayors();
+            InitComboBoxes();
             UI_RowPayor_Cmb.SelectedIndex = UI_RowPayor_Cmb.Items.Count - 1;
             RowDate = $"{(day != -1 ? day.ToString("00") : "??")}/{(int)month:00}/{year:0000}";
             UI_RowDate_Tbx.Text = RowDate;
@@ -63,9 +70,9 @@ namespace PayorLedger.Dialogs
         {
             InitializeComponent();
 
-            PopulatePayors();
+            InitComboBoxes();
             PayorEntry payor = _mainPageVM.Payors.Find(p => p.PayorId == existingRow.PayorId)!;
-            UI_RowPayor_Cmb.SelectedItem = new DropDownItem { Name = payor.PayorName, Value = payor.PayorId };
+            UI_RowPayor_Cmb.SelectedItem = new DropDownItemPayor { Name = payor.PayorName, Value = payor.PayorId };
 
             _existingRow = existingRow;
             UI_RowDate_Tbx.Text = existingRow.Date;
@@ -79,13 +86,19 @@ namespace PayorLedger.Dialogs
 
 
 
+
         /// <summary>
-        /// Populate order combo box
+        /// Initialize the combo boxes
         /// </summary>
-        private void PopulatePayors()
+        public void InitComboBoxes()
         {
-            UI_RowPayor_Cmb.ItemsSource = App.ServiceProvider.GetRequiredService<MainPageViewModel>().Payors.Select(p => new DropDownItem { Name = p.PayorName, Value = p.PayorId});
+            UI_RowPayor_Cmb.ItemsSource = App.ServiceProvider.GetRequiredService<MainPageViewModel>().Payors.Select(p => new DropDownItemPayor { Name = p.PayorName, Value = p.PayorId });
             UI_RowPayor_Cmb.DisplayMemberPath = "Name";
+
+            UI_RowLabel_Cmb.ItemsSource = Enum.GetValues<RowEntry.RowLabel>()
+                                                .Select(x => new DropDownItemLabel { Name = x.ToString(), Value = x })
+                                                .ToList();
+            UI_RowLabel_Cmb.DisplayMemberPath = "Name";
         }
 
 
@@ -115,7 +128,8 @@ namespace PayorLedger.Dialogs
 
             UI_AddRow_Btn.IsEnabled =
                 UI_RowDate_Tbx.Text.Trim().Length > 0 &&
-                UI_RowPayor_Cmb.SelectedIndex > -1;
+                UI_RowPayor_Cmb.SelectedIndex > -1 &&
+                UI_RowLabel_Cmb.SelectedIndex > -1;
         }
 
 
@@ -127,8 +141,9 @@ namespace PayorLedger.Dialogs
         /// <param name="e">Event args</param>
         private void UI_AddRow_Btn_Click(object sender, RoutedEventArgs e)
         {
+            RowLabel = ((DropDownItemLabel)UI_RowLabel_Cmb.SelectedItem).Value;
             RowDate = UI_RowDate_Tbx.Text.Trim();
-            RowPayorId = ((DropDownItem)UI_RowPayor_Cmb.SelectedItem).Value;
+            RowPayorId = ((DropDownItemPayor)UI_RowPayor_Cmb.SelectedItem).Value;
             RowOrNum = int.Parse(UI_RowOrNum_Tbx.Text);
             DialogResult = true;
         }
@@ -151,16 +166,28 @@ namespace PayorLedger.Dialogs
         // Update button state on change
         private void UI_RowDate_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
         private void UI_RowOrNum_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
+        private void UI_RowLabel_Cmb_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateButton();
 
 
 
         /// <summary>
-        /// Struct to hold the drop down item values
+        /// Struct to hold the payor drop down item values
         /// </summary>
-        private struct DropDownItem
+        private struct DropDownItemPayor
         {
             public string Name { get; set; }
             public long Value { get; set; }
+        }
+
+
+
+        /// <summary>
+        /// Struct to hold the label drop down item values
+        /// </summary>
+        private struct DropDownItemLabel
+        {
+            public string Name { get; set; }
+            public RowEntry.RowLabel Value { get; set; }
         }
     }
 }

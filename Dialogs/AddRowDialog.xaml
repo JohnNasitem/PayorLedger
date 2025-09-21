@@ -8,7 +8,7 @@
         FontSize="16"
         WindowStartupLocation="CenterScreen"
         KeyDown="Window_KeyDown"
-        Title="Add A New Row" Height="330" Width="300">
+        Title="Add A New Row" Height="380" Width="300">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -16,6 +16,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
@@ -30,10 +31,26 @@
             Grid.ColumnSpan="2"/>
 
         <Label 
+            x:Name="UI_RowLabel_Lbl"
+            Content="Label" 
+            Margin="5" 
+            Grid.Row="1" 
+            Grid.Column="0"/>
+        <ComboBox
+            HorizontalContentAlignment="Center"
+            VerticalContentAlignment="Center"
+            Margin="5"
+            x:Name="UI_RowLabel_Cmb"
+            Grid.Row="1" 
+            Grid.Column="1"
+            SelectionChanged="UI_RowLabel_Cmb_SelectionChanged">
+        </ComboBox>
+
+        <Label 
             x:Name="UI_RowDate_Lbl"
             Content="Date" 
             Margin="5" 
-            Grid.Row="1" 
+            Grid.Row="2" 
             Grid.Column="0"
             VerticalAlignment="Center"/>
         <TextBox 
@@ -41,7 +58,7 @@
             HorizontalContentAlignment="Left"
             VerticalContentAlignment="Center"
             Margin="5" 
-            Grid.Row="1"  
+            Grid.Row="2"  
             Grid.Column="1"
             TextChanged="UI_RowDate_Tbx_TextChanged"/>
 
@@ -49,7 +66,7 @@
             x:Name="UI_RowOrNum_Lbl"
             Content="Or #" 
             Margin="5" 
-            Grid.Row="2" 
+            Grid.Row="3" 
             Grid.Column="0"
             VerticalAlignment="Center"/>
         <TextBox 
@@ -57,7 +74,7 @@
             HorizontalContentAlignment="Left"
             VerticalContentAlignment="Center"
             Margin="5" 
-            Grid.Row="2"  
+            Grid.Row="3"  
             Grid.Column="1"
             TextChanged="UI_RowOrNum_Tbx_TextChanged"/>
 
@@ -65,12 +82,12 @@
             x:Name="UI_RowPayor_Lbl"
             Content="Payor" 
             Margin="5" 
-            Grid.Row="3" 
+            Grid.Row="4" 
             Grid.Column="0"
             VerticalAlignment="Center"/>
         <ComboBox
             x:Name="UI_RowPayor_Cmb"
-            Grid.Row="3"
+            Grid.Row="4"
             Grid.Column="1"
             Margin="5"
             HorizontalContentAlignment="Center"
@@ -78,7 +95,7 @@
             />
 
         <Grid
-            Grid.Row="4" 
+            Grid.Row="5" 
             Grid.Column="0"
             Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>

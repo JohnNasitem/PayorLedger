@@ -14,6 +14,13 @@ namespace PayorLedger.Models
     public class RowEntry : IDatabaseAction
     {
         /// <summary>
+        /// Label of the row
+        /// </summary>
+        public RowLabel Label { get; set; }
+
+
+
+        /// <summary>
         /// Date of row
         /// </summary>
         public string Date { get; set; }
@@ -69,8 +76,9 @@ namespace PayorLedger.Models
 
 
 
-        public RowEntry(string date, int orNum, long payorId, Month month, int year, string comment, ChangeState state, List<CellEntryToRow> cellEntries)
+        public RowEntry(RowLabel label, string date, int orNum, long payorId, Month month, int year, string comment, ChangeState state, List<CellEntryToRow> cellEntries)
         {
+            Label = label;
             Date = date;
             OrNum = orNum;
             PayorId = payorId;
@@ -79,6 +87,16 @@ namespace PayorLedger.Models
             Comment = comment;
             State = state;
             CellEntries = cellEntries;
+        }
+
+
+
+        public enum RowLabel
+        {
+            Depositor,
+            Borrower,
+            ShareHolder,
+            Other
         }
     }
 }

@@ -9,7 +9,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Dialogs;
-using PayorLedger.Enums;
 using PayorLedger.Models;
 using PayorLedger.Services.Actions;
 using PayorLedger.Services.Actions.PayorCommands;
@@ -70,13 +69,13 @@ namespace PayorLedger.ViewModels
 
             AddPayorDialog page = new(payor);
 
-            if (page.ShowDialog() != true || (payor.PayorName == page.PayorName && payor.Label == page.PayorLabel))
+            if (page.ShowDialog() != true || (payor.PayorName == page.PayorName))
                 return;
 
-            _logger.AddLog($"Attempting to edit a payor. Name: \"{page.PayorName}\" - Label: \"{Enum.GetName<PayorEnums.PayorLabel>(page.PayorLabel)}\"", Logger.LogType.PreAction);
+            _logger.AddLog($"Attempting to edit a payor. Name: \"{page.PayorName}\"", Logger.LogType.PreAction);
 
             // Create a new payor with the data from the dialog
-            _undoRedoService.Execute(new EditPayorCommand(payor, page.PayorName, page.PayorLabel));
+            _undoRedoService.Execute(new EditPayorCommand(payor, page.PayorName));
         }
 
 

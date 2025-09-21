@@ -16,7 +16,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label 
@@ -42,24 +41,8 @@
             Grid.Column="1"
             TextChanged="UI_PayorName_Tbx_TextChanged"/>
 
-        <Label 
-            x:Name="UI_PayorLabel_Lbl"
-            Content="Label" 
-            Margin="5" 
-            Grid.Row="2" 
-            Grid.Column="0"/>
-        <ComboBox
-            HorizontalContentAlignment="Center"
-            VerticalContentAlignment="Center"
-            Margin="5"
-            x:Name="UI_PayorLabel_Cmb"
-            Grid.Row="2" 
-            Grid.Column="1"
-            SelectionChanged="UI_PayorLabel_Cmb_SelectionChanged">
-        </ComboBox>
-
         <Grid
-            Grid.Row="3" 
+            Grid.Row="2" 
             Grid.Column="0"
             Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
