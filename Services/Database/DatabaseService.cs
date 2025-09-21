@@ -185,7 +185,7 @@ namespace PayorLedger.Services.Database
                 switch (header.State)
                 {
                     case ChangeState.Added:
-                        long headerId = AddHeader(header.Name, header.Order);
+                        long headerId = AddHeader(header);
 
                         // Replace temp id with new id
                         header.Id = headerId;
