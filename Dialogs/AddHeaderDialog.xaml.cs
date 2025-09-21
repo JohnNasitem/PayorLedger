@@ -129,5 +129,18 @@ namespace PayorLedger.Dialogs
             HeaderOrder = (int)UI_HeaderOrder_Cmb.SelectedItem;
             DialogResult = true;
         }
+
+
+
+        /// <summary>
+        /// Allow users to press enter 
+        /// </summary>
+        /// <param name="sender">Window</param>
+        /// <param name="e">Event args</param>
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter && UI_AddHeader_Btn.IsEnabled)
+                UI_AddHeader_Btn_Click(sender, e);
+        }
     }
 }

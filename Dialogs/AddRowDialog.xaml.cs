@@ -158,7 +158,7 @@ namespace PayorLedger.Dialogs
         /// <param name="e">Event args</param>
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == System.Windows.Input.Key.Enter)
+            if (e.Key == System.Windows.Input.Key.Enter && UI_AddRow_Btn.IsEnabled)
                 UI_AddRow_Btn_Click(sender, e);
         }
 

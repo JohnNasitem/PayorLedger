@@ -189,5 +189,18 @@ namespace PayorLedger.Dialogs
             public string Name { get; set; }
             public HeaderEntry Value { get; set; }
         }
+
+
+
+        /// <summary>
+        /// Allow users to press enter 
+        /// </summary>
+        /// <param name="sender">Window</param>
+        /// <param name="e">Event args</param>
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter && UI_AddSubheader_Btn.IsEnabled)
+                UI_AddSubheader_Btn_Click(sender, e);
+        }
     }
 }

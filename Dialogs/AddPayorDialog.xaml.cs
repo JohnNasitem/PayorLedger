@@ -98,5 +98,18 @@ namespace PayorLedger.Dialogs
         /// Update the Add button when the payor name or the selected label changes.
         /// </summary>
         private void UI_PayorName_Tbx_TextChanged(object sender, TextChangedEventArgs e) => UpdateButton();
+
+
+
+        /// <summary>
+        /// Allow users to press enter 
+        /// </summary>
+        /// <param name="sender">Window</param>
+        /// <param name="e">Event args</param>
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter && UI_AddPayor_Btn.IsEnabled)
+                UI_AddPayor_Btn_Click(sender, e);
+        }
     }
 }
