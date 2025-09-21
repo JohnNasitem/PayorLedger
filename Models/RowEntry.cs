@@ -65,7 +65,7 @@ namespace PayorLedger.Models
         /// <summary>
         /// Cell entries in this row
         /// </summary>
-        public List<CellEntryToRow> CellEntries { get; set; }   
+        public List<CellEntryToRow> CellEntries { get; set; }
 
 
 

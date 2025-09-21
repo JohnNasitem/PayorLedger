@@ -6,12 +6,12 @@
 //***********************************************************************************
 
 
-using System.Windows;
-using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Models;
 using PayorLedger.Services.Database;
 using PayorLedger.ViewModels;
+using System.Windows;
+using System.Windows.Controls;
 
 
 namespace PayorLedger.Dialogs

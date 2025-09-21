@@ -32,13 +32,13 @@ namespace PayorLedger.Models.Columns
         /// <summary>
         /// Order the subheader should be displayed in
         /// </summary>
-        public int Order { get; set;  }
+        public int Order { get; set; }
 
 
         /// <summary>
         /// Header this subheader belongs to
         /// </summary>
-        public HeaderEntry Header { get; set;  }
+        public HeaderEntry Header { get; set; }
 
 
 

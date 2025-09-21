@@ -9,8 +9,8 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Models;
-using PayorLedger.ViewModels;
 using PayorLedger.Services.Database;
+using PayorLedger.ViewModels;
 
 namespace PayorLedger.Services.Actions.RowCommands
 {

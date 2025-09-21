@@ -97,7 +97,7 @@ namespace PayorLedger.ViewModels
         }
 
 
-        
+
         /// <summary>
         /// Prompt user to edit the column
         /// </summary>

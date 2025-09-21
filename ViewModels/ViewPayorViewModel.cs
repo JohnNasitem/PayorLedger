@@ -42,7 +42,7 @@ namespace PayorLedger.ViewModels
         /// <summary>
         /// Payor accociated with this page
         /// </summary>
-        public PayorEntry Payor { get; private set;  } = null!;
+        public PayorEntry Payor { get; private set; } = null!;
 
 
 

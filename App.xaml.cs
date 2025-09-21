@@ -9,10 +9,10 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Services.Actions;
-using PayorLedger.ViewModels;
-using System.Windows;
 using PayorLedger.Services.Database;
 using PayorLedger.Services.Logger;
+using PayorLedger.ViewModels;
+using System.Windows;
 
 namespace PayorLedger
 {
@@ -41,7 +41,8 @@ namespace PayorLedger
             ILogger logger = ServiceProvider.GetRequiredService<ILogger>();
 
 
-            DispatcherUnhandledException += (s, e) => {
+            DispatcherUnhandledException += (s, e) =>
+            {
                 logger.AddLog("UI Exception: " + e.Exception.ToString(), Logger.LogType.Error);
                 MessageBox.Show("Error occured! Send the log file to John then restart the application.");
                 // Prevent immediate crash

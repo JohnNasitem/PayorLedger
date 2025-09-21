@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Database;
 using PayorLedger.ViewModels;
-using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 

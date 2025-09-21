@@ -22,7 +22,6 @@ using PayorLedger.Services.Database;
 using PayorLedger.Services.Logger;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -46,7 +45,7 @@ namespace PayorLedger.ViewModels
         public List<DataColumn> TableColumns { get; private set; } = null!;
         public List<RowEntry> LedgerRows { get; set; } = null!;
         public List<HeaderEntry> Headers { get; set; } = null!;
-        public List<PayorEntry> Payors { get; set; }= null!;
+        public List<PayorEntry> Payors { get; set; } = null!;
 
         public MainPage Page { get; }
 
@@ -146,8 +145,8 @@ namespace PayorLedger.ViewModels
         /// <returns>List of subheaders</returns>
         public List<SubheaderEntry> GetSubheaders(List<HeaderEntry> headers, bool filteredOutRemoved)
         {
-            return filteredOutRemoved ? 
-                headers.Where(h => h.State != ChangeState.Removed).SelectMany(h => h.Subheaders).Where(h => h.State != ChangeState.Removed).ToList() : 
+            return filteredOutRemoved ?
+                headers.Where(h => h.State != ChangeState.Removed).SelectMany(h => h.Subheaders).Where(h => h.State != ChangeState.Removed).ToList() :
                 headers.SelectMany(h => h.Subheaders).ToList();
         }
 
@@ -239,7 +238,7 @@ namespace PayorLedger.ViewModels
 
             // Order columns
             headers = [.. headers.Where(h => h.State != ChangeState.Removed).OrderBy(h => h.Order)];
-            foreach(HeaderEntry header in headers)
+            foreach (HeaderEntry header in headers)
                 header.Subheaders = [.. header.Subheaders.Where(s => s.State != ChangeState.Removed).OrderBy(s => s.Order)];
 
             // Add DataColumns

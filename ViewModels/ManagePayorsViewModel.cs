@@ -86,12 +86,12 @@ namespace PayorLedger.ViewModels
         /// <param name="payorName">Name of specified payor</param>
         public void ViewPayorBalance(string? payorName)
         {
-            if (payorName == null)  
+            if (payorName == null)
                 return;
 
             _payorWindowVM.ViewPayor(payorName);
         }
-        
+
 
 
         /// <summary>

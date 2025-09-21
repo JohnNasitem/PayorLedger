@@ -43,7 +43,7 @@ namespace PayorLedger.Services.Actions
         /// Is there any unsaved changes
         /// </summary>
         public bool UnsavedChanges { get; set; }
-        
+
 
 
         /// <summary>

@@ -259,7 +259,7 @@ namespace PayorLedger.Services.Database
 
             // Remove deleted rows from list
             foreach (RowEntry row in objectsToRemoveFromLists.Cast<RowEntry>())
-                rows.RemoveAll(r=> r.OrNum == row.OrNum);
+                rows.RemoveAll(r => r.OrNum == row.OrNum);
             objectsToRemoveFromLists.Clear();
 
             logger.AddLog("Finished saving row changes!", Logger.Logger.LogType.Action);
@@ -302,7 +302,7 @@ namespace PayorLedger.Services.Database
         /// Get all the entries
         /// </summary>>
         /// <returns>Row entries</returns>
-        public List<RowEntry>  GetRows()
+        public List<RowEntry> GetRows()
         {
             List<RowEntry> rows = [];
 

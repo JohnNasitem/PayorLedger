@@ -95,7 +95,7 @@ namespace PayorLedger.Models
         /// <returns>Total</returns>
         public decimal GetRowTotal(int orNum)
         {
-            if(rowTotals.TryGetValue(orNum, out decimal total))
+            if (rowTotals.TryGetValue(orNum, out decimal total))
                 return total;
             return 0;
         }
