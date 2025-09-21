@@ -165,7 +165,7 @@ namespace PayorLedger.Services.Database
                         objectsToRemoveFromLists.Add(payor);
                         break;
                     case ChangeState.Edited:
-                        EditPayorEntry(payor, payor.PayorName);
+                        EditPayorEntry(payor);
                         break;
                 }
 
@@ -195,7 +195,7 @@ namespace PayorLedger.Services.Database
                         objectsToRemoveFromLists.Add(header);
                         break;
                     case ChangeState.Edited:
-                        EditHeaderEntry(header, header.Name, header.Order);
+                        EditHeaderEntry(header);
                         break;
                 }
 
@@ -215,7 +215,7 @@ namespace PayorLedger.Services.Database
                 switch (subheader.State)
                 {
                     case ChangeState.Added:
-                        long subheaderId = AddSubheader(subheader.Name, subheader.Header.Id, subheader.Order);
+                        long subheaderId = AddSubheader(subheader);
 
                         // Replace temp id with new id
                         foreach (CellEntryToRow entry in rows.SelectMany(r => r.CellEntries).Where(e => e.SubheaderId == subheader.Id))
@@ -228,7 +228,7 @@ namespace PayorLedger.Services.Database
                         subheader.Header.Subheaders.RemoveAll(s => s.Id == subheader.Id);
                         break;
                     case ChangeState.Edited:
-                        EditSubheaderEntry(subheader, subheader.Name, subheader.Header.Id, subheader.Order);
+                        EditSubheaderEntry(subheader);
                         break;
                 }
 
@@ -604,14 +604,14 @@ namespace PayorLedger.Services.Database
         /// <summary>
         /// Add a header to the database
         /// </summary>
-        /// <param name="headerName">Name of new header</param>
+        /// <param name="header">Header to add</param>
         /// <returns>Id of the new header</returns>
-        private long AddHeader(string headerName, int headerOrder)
+        private long AddHeader(HeaderEntry header)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Header)} (HeaderName, HeaderOrder) VALUES (@headerName, @headerOrder)";
-            cmd.Parameters.AddWithValue("@headerName", headerName);
-            cmd.Parameters.AddWithValue("@headerOrder", headerOrder);
+            cmd.Parameters.AddWithValue("@headerName", header.Name);
+            cmd.Parameters.AddWithValue("@headerOrder", header.Order);
             cmd.ExecuteNonQuery();
 
             cmd.CommandText = "SELECT last_insert_rowid();";
@@ -623,18 +623,15 @@ namespace PayorLedger.Services.Database
         /// <summary>
         /// Add a subheader to the database
         /// </summary>
-        /// <param name="subheaderName">Name of new subheader</param>
-        /// <param name="headerId">Id of header the subheader is being added to</param>
-        /// <param name="subheaderOrder">Order of header the subheader is being added to</param>
-        ///  <returns>Id of the new subheader</returns>
-        /// <exception cref="ArgumentException">Throws exception if the specified table isnt <see cref="DatabaseTables.Payor"/>, <see cref="DatabaseTables.Header"/>, or <see cref="DatabaseTables.Subheader"/></exception> 
-        private long AddSubheader(string subheaderName, long headerId, int subheaderOrder)
+        /// <param name="subheader">Subheader to add</param>
+        /// <returns>Id of the new subheader</returns>
+        private long AddSubheader(SubheaderEntry subheader)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"INSERT INTO {Enum.GetName(DatabaseTables.Subheader)} (SubheaderName, HeaderId, SubHeaderOrder) VALUES (@subheaderName, @headerId, @subHeaderOrder)";
-            cmd.Parameters.AddWithValue("@subheaderName", subheaderName);
-            cmd.Parameters.AddWithValue("@headerId", headerId);
-            cmd.Parameters.AddWithValue("@subHeaderOrder", subheaderOrder);
+            cmd.Parameters.AddWithValue("@subheaderName", subheader.Name);
+            cmd.Parameters.AddWithValue("@headerId", subheader.Header.Id);
+            cmd.Parameters.AddWithValue("@subHeaderOrder", subheader.Order);
             cmd.ExecuteNonQuery();
 
             cmd.CommandText = "SELECT last_insert_rowid();";
@@ -682,24 +679,27 @@ namespace PayorLedger.Services.Database
 
         #region EditMethods
         /// <summary>
-        /// Edit an existing payor
+        /// Edit an existing payor <br/>
+        /// Adds a payor if it doesnt edit an existing
         /// </summary>
         /// <param name="payor">Payor to edit</param>
-        /// /// <param name="newName">New payor name</param>
-        /// /// <param name="newLabel">New payor label</param>
-        private void EditPayorEntry(PayorEntry payor, string newName)
+        private void EditPayorEntry(PayorEntry payor)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Payor)} SET PayorName = @payorName WHERE PayorId = @payorId";
-            cmd.Parameters.AddWithValue("@payorName", newName);
+            cmd.Parameters.AddWithValue("@payorName", payor.PayorName);
             cmd.Parameters.AddWithValue("@payorId", payor.PayorId);
-            cmd.ExecuteNonQuery();
+            int affectedRows = cmd.ExecuteNonQuery();
+
+            if (affectedRows == 0)
+                AddPayor(payor.PayorName);
         }
 
 
 
         /// <summary>
-        /// Update a cell entry
+        /// Update a cell entry <br/>
+        /// Adds a cell entry if it doesnt edit an existing entry
         /// </summary>
         /// <param name="entry">New entry values</param>
         private void EditCellEntry(CellEntryToRow entry)
@@ -709,13 +709,17 @@ namespace PayorLedger.Services.Database
             cmd.Parameters.AddWithValue("@orNum", entry.Row.OrNum);
             cmd.Parameters.AddWithValue("@subheaderId", entry.SubheaderId);
             cmd.Parameters.AddWithValue("@newAmount", entry.Amount);
-            int affectRows = cmd.ExecuteNonQuery();
+            int affectedRows = cmd.ExecuteNonQuery();
+
+            if (affectedRows == 0)
+                AddCellEntry(entry);
         }
 
 
 
         /// <summary>
-        /// Update a row entry
+        /// Update a row entry <br/>
+        /// Adds a row if it doesnt edit an existing entry
         /// </summary>
         /// <param name="entry">New row values</param>
         private void EditRowEntry(RowEntry entry)
@@ -727,27 +731,31 @@ namespace PayorLedger.Services.Database
             cmd.Parameters.AddWithValue("@date", entry.Date);
             cmd.Parameters.AddWithValue("@payorId", entry.PayorId);
             cmd.Parameters.AddWithValue("@orNum", entry.OrNum);
-            int affectRows = cmd.ExecuteNonQuery();
+            int affectedRows = cmd.ExecuteNonQuery();
+
+            if (affectedRows == 0)
+                AddRowEntry(entry);
         }
 
 
 
         /// <summary>
-        /// Update a subheader entry
+        /// Update a subheader entry <br/>
+        /// Adds a subheader if it doesnt edit an existing entry
         /// </summary>
         /// <param name="subheader">Subheader being editted</param>
-        /// <param name="newName">New subheader name</param>
-        /// <param name="newParentHeaderId">New parent header id</param>
-        /// <param name="newOrder">New subheader order</param>
-        private void EditSubheaderEntry(SubheaderEntry subheader, string newName, long newParentHeaderId, int newOrder)
+        private void EditSubheaderEntry(SubheaderEntry subheader)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Subheader)} SET HeaderID = @headerId, SubHeaderName = @subheaderName, SubHeaderOrder = @subheaderOrder WHERE SubHeaderId = @subheaderId";
-            cmd.Parameters.AddWithValue("@headerId", newParentHeaderId);
-            cmd.Parameters.AddWithValue("@subheaderName", newName);
-            cmd.Parameters.AddWithValue("@subheaderOrder", newOrder);
+            cmd.Parameters.AddWithValue("@headerId", subheader.Header.Id);
+            cmd.Parameters.AddWithValue("@subheaderName", subheader.Name);
+            cmd.Parameters.AddWithValue("@subheaderOrder", subheader.Order);
             cmd.Parameters.AddWithValue("@subheaderId", subheader.Id);
-            cmd.ExecuteNonQuery();
+            int affectedRows = cmd.ExecuteNonQuery();
+
+            if (affectedRows == 0)
+                AddSubheader(subheader);
         }
 
 
@@ -756,16 +764,17 @@ namespace PayorLedger.Services.Database
         /// Update a header entry
         /// </summary>
         /// <param name="header">Header being editted</param>
-        /// <param name="newName">New header name</param>
-        /// <param name="newOrder">New header order</param>
-        private void EditHeaderEntry(HeaderEntry header, string newName, int newOrder)
+        private void EditHeaderEntry(HeaderEntry header)
         {
             using SQLiteCommand cmd = _sqlConnection.CreateCommand();
             cmd.CommandText = $@"UPDATE {Enum.GetName(DatabaseTables.Header)} SET HeaderName = @headerName, HeaderOrder = @headerOrder WHERE HeaderId = @headerId";
-            cmd.Parameters.AddWithValue("@headerName", newName);
-            cmd.Parameters.AddWithValue("@headerOrder", newOrder);
+            cmd.Parameters.AddWithValue("@headerName", header.Name);
+            cmd.Parameters.AddWithValue("@headerOrder", header.Order);
             cmd.Parameters.AddWithValue("@headerId", header.Id);
-            cmd.ExecuteNonQuery();
+            int affectedRows = cmd.ExecuteNonQuery();
+
+            if (affectedRows == 0)
+                AddHeader(header);
         }
         #endregion
 
