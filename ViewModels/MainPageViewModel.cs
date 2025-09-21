@@ -286,9 +286,6 @@ namespace PayorLedger.ViewModels
             {
                 DataRow row = tab.Content.NewRow();
 
-                // Initialize the row cells
-                foreach (DataColumn col in columns)
-                    row[col.ColumnName] = 0;
                 row["Label"] = dataRow.Label.ToString();
                 row["Payor"] = Payors.Find(p => p.PayorId == dataRow.PayorId)!.PayorName;
                 row["Date"] = dataRow.Date;
@@ -302,8 +299,7 @@ namespace PayorLedger.ViewModels
 
                     SubheaderEntry subheader = subheaders.FirstOrDefault(s => s.Id == data.SubheaderId && s.State != ChangeState.Removed)!;
 
-                    string colName = $"{subheader.Header.Name}\n{subheader.Name}";
-                    row[colName] = decimal.Parse(row[colName].ToString()!) + data.Amount;
+                    row[$"{subheader.Header.Name}\n{subheader.Name}"] = data.Amount;
                 }
 
                 // Populate comments and total column
