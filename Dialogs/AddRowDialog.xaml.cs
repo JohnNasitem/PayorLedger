@@ -73,6 +73,7 @@ namespace PayorLedger.Dialogs
             InitComboBoxes();
             PayorEntry payor = _mainPageVM.Payors.Find(p => p.PayorId == existingRow.PayorId)!;
             UI_RowPayor_Cmb.SelectedItem = new DropDownItemPayor { Name = payor.PayorName, Value = payor.PayorId };
+            UI_RowLabel_Cmb.SelectedItem = new DropDownItemLabel { Name = existingRow.Label.ToString(), Value = existingRow.Label };
 
             _existingRow = existingRow;
             UI_RowDate_Tbx.Text = existingRow.Date;
