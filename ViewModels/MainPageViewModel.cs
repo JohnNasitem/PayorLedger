@@ -22,7 +22,7 @@ using PayorLedger.Services.Database;
 using PayorLedger.Services.Logger;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Dynamic;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -232,6 +232,7 @@ namespace PayorLedger.ViewModels
         {
             List<DataColumn> columns = [];
 
+            columns.Add(MarkColumnAsDefault(new DataColumn("Label") { AllowDBNull = false, ReadOnly = true }));
             columns.Add(MarkColumnAsDefault(new DataColumn("Date") { AllowDBNull = false, ReadOnly = true }));
             columns.Add(MarkColumnAsDefault(new DataColumn("OR #") { AllowDBNull = false, ReadOnly = true }));
             columns.Add(MarkColumnAsDefault(new DataColumn("Payor") { AllowDBNull = false, ReadOnly = true }));
@@ -288,6 +289,7 @@ namespace PayorLedger.ViewModels
                 // Initialize the row cells
                 foreach (DataColumn col in columns)
                     row[col.ColumnName] = 0;
+                row["Label"] = dataRow.Label.ToString();
                 row["Payor"] = Payors.Find(p => p.PayorId == dataRow.PayorId)!.PayorName;
                 row["Date"] = dataRow.Date;
                 row["Or #"] = dataRow.OrNum;
@@ -322,6 +324,7 @@ namespace PayorLedger.ViewModels
             }
             totalRow["Payor"] = "Total";
             totalRow["Date"] = "";
+            totalRow["Label"] = "";
             totalRow["Or #"] = "";
             totalRow["Total"] = monthTotal.GetOverallTotal();
             totalRow["Comments"] = "";

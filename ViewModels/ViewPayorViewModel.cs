@@ -63,6 +63,7 @@ namespace PayorLedger.ViewModels
 
             // Remove unused columns
             _columns.RemoveAll(c => c.ColumnName == "Payor");
+            _columns.RemoveAll(c => c.ColumnName == "Label");
             _columns.RemoveAll(c => c.ColumnName == "Comments");
             _columns.RemoveAll(c => c.ColumnName == "Date");
             _columns.RemoveAll(c => c.ColumnName == "OR #");
