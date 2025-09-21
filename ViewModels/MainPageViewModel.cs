@@ -323,9 +323,9 @@ namespace PayorLedger.ViewModels
                 totalRow[col.ColumnName] = monthTotal.GetColumnTotal(subheaders.First(s => s.Header.Name == col.ColumnName.Split('\n')[0] && s.Name == col.ColumnName.Split('\n')[1]).Id);
             }
             totalRow["Payor"] = "Total";
-            totalRow["Date"] = "";
+            totalRow["Date"] = "Count";
             totalRow["Label"] = "";
-            totalRow["Or #"] = "";
+            totalRow["Or #"] = monthData.SelectMany(r => r.CellEntries).Where(c => c.State != ChangeState.Removed).Count();
             totalRow["Total"] = monthTotal.GetOverallTotal();
             totalRow["Comments"] = "";
             rows.Add(totalRow);
