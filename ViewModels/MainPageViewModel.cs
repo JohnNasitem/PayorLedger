@@ -564,7 +564,7 @@ namespace PayorLedger.ViewModels
                 _undoRedoService.Execute(new AddCellCommand(entry));
             }
             // Delete entry if value is 0
-            else if (entry != null && cellInfo.NewValue == 0)
+            else if (cellInfo.NewValue == 0)
             {
                 _logger.AddLog($"Attempting to delete a cell entry.", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new DeleteCellCommand(entry));
