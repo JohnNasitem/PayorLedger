@@ -210,6 +210,9 @@ namespace PayorLedger.Pages
                         int.Parse(((DataRowView)e.Row.Item)!.Row["Or #"].ToString()!),
                         newVal
                     ));
+
+                if (newVal == 0)
+                    ((TextBox)e.EditingElement).Clear();
             }
         }
 

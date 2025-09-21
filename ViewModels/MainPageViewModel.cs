@@ -552,6 +552,10 @@ namespace PayorLedger.ViewModels
             // Find associated entry
             CellEntryToRow? entry = LedgerRows.Find(r => r.OrNum == cellInfo.OrNum)!.CellEntries.FirstOrDefault(e => e.SubheaderId == subheaderId);
 
+            // Do nothing if the cell doesnt exist and no value is set
+            if (entry == null && cellInfo.NewValue == 0)
+                return;
+
             // Create a new entry if it doesn't exist
             if (entry == null)
             {
@@ -560,7 +564,7 @@ namespace PayorLedger.ViewModels
                 _undoRedoService.Execute(new AddCellCommand(entry));
             }
             // Delete entry if value is 0
-            else if (cellInfo.NewValue == 0)
+            else if (entry != null && cellInfo.NewValue == 0)
             {
                 _logger.AddLog($"Attempting to delete a cell entry.", Logger.LogType.PreAction);
                 _undoRedoService.Execute(new DeleteCellCommand(entry));
