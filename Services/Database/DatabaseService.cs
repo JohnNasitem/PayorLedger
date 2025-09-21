@@ -22,7 +22,7 @@ namespace PayorLedger.Services.Database
         /// <summary>
         /// List of names that are not allowed to be used for payors, headers, or subheaders
         /// </summary>
-        public string[] InvalidNames { get; } = ["", "total", "payor", "comments", "date", "or #"];
+        public string[] InvalidNames { get; } = ["", "label", "total", "payor", "comments", "date", "or #"];
 
 
 
