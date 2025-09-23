@@ -53,7 +53,7 @@ namespace PayorLedger.Services.Actions
         public void Execute(IUndoableCommand command)
         {
             command.Execute();
-            _logger.AddLog($"{command.GetType()}", Logger.Logger.LogType.Action);
+            _logger.AddLog($"Execute: {command.GetType()}", Logger.Logger.LogType.Action);
             _undoStack.Push(command);
             _redoStack.Clear();
             OnChangeOccured(false);
@@ -70,6 +70,7 @@ namespace PayorLedger.Services.Actions
             if (_redoStack.TryPop(out var command))
             {
                 command.Execute();
+                _logger.AddLog($"Redo: {command.GetType()}", Logger.Logger.LogType.Action);
                 _undoStack.Push(command);
                 OnChangeOccured(false);
             }
@@ -85,6 +86,7 @@ namespace PayorLedger.Services.Actions
             if (_undoStack.TryPop(out var command))
             {
                 command.Undo();
+                _logger.AddLog($"Undo: {command.GetType()}", Logger.Logger.LogType.Action);
                 _redoStack.Push(command);
                 OnChangeOccured(false);
             }
