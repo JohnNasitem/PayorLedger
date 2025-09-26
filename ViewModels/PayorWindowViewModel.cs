@@ -64,6 +64,7 @@ namespace PayorLedger.ViewModels
 
             ActiveViewPayorViewModel = ((PayorsWindow)Window).OpenViewPayorPage();
             ActiveViewPayorViewModel.SetPayor(payor);
+            ActiveViewPayorViewModel.Page.RefreshTabs();
             Window.Show();
             Window.Activate();
         }

@@ -27,6 +27,19 @@ namespace PayorLedger.Windows.Payors.Pages
             DataContext = vm;
             _vm = vm;
             _vm.SetPayorName = SetPayorName;
+
+            UI_TotalTypes_Tbc.ItemsSource = vm.Tabs;
+        }
+
+
+
+        /// <summary>
+        /// Refresh tabs
+        /// </summary>
+        public void RefreshTabs()
+        {
+            UI_TotalTypes_Tbc.ItemsSource = null;
+            UI_TotalTypes_Tbc.ItemsSource = _vm.Tabs;
         }
 
 

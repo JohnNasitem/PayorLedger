@@ -16,6 +16,12 @@ namespace PayorLedger.Models
     public class TotalTab
     {
         /// <summary>
+        /// Label associated with the tab
+        /// </summary>
+        public RowEntry.RowLabel Label { get; set; }
+
+
+        /// <summary>
         /// Name of the total type
         /// </summary>
         public string Name { get ; set; }
@@ -31,6 +37,7 @@ namespace PayorLedger.Models
 
         public TotalTab(RowEntry.RowLabel type)
         {
+            Label = type;
             Name = Enum.GetName(type)!;
 
             if (Name.StartsWith("Depositor"))

@@ -11,6 +11,7 @@ using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Database;
 using PayorLedger.Windows.Payors.Pages;
+using System.Collections.ObjectModel;
 using System.Data;
 
 namespace PayorLedger.ViewModels
@@ -21,13 +22,6 @@ namespace PayorLedger.ViewModels
         /// Page associated with this view model
         /// </summary>
         public ViewPayor Page { get; }
-
-
-
-        /// <summary>
-        /// DataTable for this payor's total
-        /// </summary>
-        public DataTable PayorTable { get; }
 
 
 
@@ -46,8 +40,15 @@ namespace PayorLedger.ViewModels
 
 
 
+        /// <summary>
+        /// Total tab
+        /// </summary>
+        public ObservableCollection<TotalTab> Tabs { get; set; }
+
+
+
         private readonly MainPageViewModel _mainPageVM;
-        private readonly List<DataColumn> _columns;
+        private readonly List<DataColumn> _staticColumns;
 
 
 
@@ -56,23 +57,35 @@ namespace PayorLedger.ViewModels
             SetPayorName = null;
             Page = new(this);
             _mainPageVM = mainPageVM;
-            PayorTable = new();
 
+            _staticColumns = GetColumnList();
+
+            // Create the total tabs
+            Tabs = new ObservableCollection<TotalTab>(
+                    Enum.GetValues<RowEntry.RowLabel>()
+                    .Select(m => new TotalTab(m)));
+        }
+
+
+
+        private List<DataColumn> GetColumnList()
+        {
             // Create columns
-            _columns = MainPageViewModel.CreateColumns(new(_mainPageVM.Headers.Where(h => h.State != ChangeState.Removed)), true);
+            List<DataColumn> columns = MainPageViewModel.CreateColumns(new(_mainPageVM.Headers.Where(h => h.State != ChangeState.Removed)), true);
 
             // Remove unused columns
-            _columns.RemoveAll(c => c.ColumnName == "Payor");
-            _columns.RemoveAll(c => c.ColumnName == "Label");
-            _columns.RemoveAll(c => c.ColumnName == "Comments");
-            _columns.RemoveAll(c => c.ColumnName == "Date");
-            _columns.RemoveAll(c => c.ColumnName == "OR #");
+            columns.RemoveAll(c => c.ColumnName == "Payor");
+            columns.RemoveAll(c => c.ColumnName == "Label");
+            columns.RemoveAll(c => c.ColumnName == "Comments");
+            columns.RemoveAll(c => c.ColumnName == "Date");
+            columns.RemoveAll(c => c.ColumnName == "OR #");
 
             // Add a new Year column at the start
             DataColumn yearCol = new("Year") { AllowDBNull = false, ReadOnly = true };
             yearCol.ExtendedProperties.Add("IsDefault", true);
-            _columns.Insert(0, yearCol);
+            columns.Insert(0, yearCol);
 
+            return columns;
         }
 
 
@@ -121,16 +134,24 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void PopulateTable()
         {
-            PayorTable.Columns.Clear();
-            PayorTable.Rows.Clear();
+            Dictionary<int, List<CellEntryToRow>> entries = GetEntries();
 
-            // Add Columns
-            foreach (DataColumn col in _columns)
-                PayorTable.Columns.Add(col);
+            foreach (TotalTab tab in Tabs)
+            {
+                tab.Content.Columns.Clear();
+                tab.Content.Rows.Clear();
 
-            // Add Rows
-            foreach (DataRow row in CreateRows(GetEntries()))
-                PayorTable.Rows.Add(row);
+                // Add Columns
+                foreach (DataColumn col in GetColumnList())
+                    tab.Content.Columns.Add(col);
+
+                // Add Rows
+                foreach (DataRow row in CreateRows(tab.Content, entries.SelectMany(r => r.Value)
+                                                .Where(ce => ce.Row.Label == tab.Label)
+                                                .GroupBy(ce => ce.Row.Year)
+                                                .ToDictionary(g => g.Key, g => g.ToList())))
+                    tab.Content.Rows.Add(row);
+            }
         }
 
 
@@ -139,7 +160,7 @@ namespace PayorLedger.ViewModels
         /// Create the rows for the table
         /// </summary>
         /// <returns>List of rows</returns>
-        private List<DataRow> CreateRows(Dictionary<int, List<CellEntryToRow>> entries)
+        private List<DataRow> CreateRows(DataTable table, Dictionary<int, List<CellEntryToRow>> entries)
         {
             List<DataRow> rows = [];
             decimal payorTotal = 0;
@@ -147,17 +168,17 @@ namespace PayorLedger.ViewModels
             List<SubheaderEntry> subheaders = _mainPageVM.GetSubheaders(_mainPageVM.Headers, true);
 
             // Initialize column totals
-            foreach (DataColumn col in _columns)
+            foreach (DataColumn col in _staticColumns)
                 columnTotals.Add(col.ColumnName, 0);
 
             // Create rows for each payor
             foreach (int year in entries.Keys)
             {
-                DataRow row = PayorTable.NewRow();
+                DataRow row = table.NewRow();
                 decimal yearTotal = 0;
 
                 // Initialize the row cells
-                foreach (DataColumn col in _columns)
+                foreach (DataColumn col in _staticColumns)
                     row[col.ColumnName] = 0;
                 row["Year"] = year;
 
@@ -180,8 +201,8 @@ namespace PayorLedger.ViewModels
             }
 
             // Add total row
-            DataRow totalRow = PayorTable.NewRow();
-            foreach (DataColumn col in _columns)
+            DataRow totalRow = table.NewRow();
+            foreach (DataColumn col in _staticColumns)
             {
                 if (col.ExtendedProperties.ContainsKey("IsDefault"))
                     continue;

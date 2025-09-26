@@ -31,34 +31,49 @@
                 FontSize="20"
                 Grid.Column="1"/>
         </Grid>
-        <DataGrid
-            ItemsSource="{Binding PayorTable}"
-            x:Name = "UI_Table_Dgd"
+
+        <TabControl
             Grid.Row="1"
-            IsReadOnly="True"
-            AutoGenerateColumns="True"
-            CanUserAddRows="False"
-            CanUserDeleteRows="False"
-            CanUserReorderColumns="True"
-            CanUserResizeRows="True"
-            CanUserResizeColumns="True"
-            CanUserSortColumns="False"
-            ColumnWidth="Auto"
-            SelectionUnit="CellOrRowHeader"
-            RowHeaderWidth="0"
-            BorderBrush="Black"
-            BorderThickness="1">
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Setter Property="Background" Value="WhiteSmoke"/>
-                    <Setter Property="Padding" Value="5"/>
-                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                    <Setter Property="BorderBrush" Value="Black"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-        </DataGrid>
+            x:Name="UI_TotalTypes_Tbc"
+            HorizontalAlignment="Stretch">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <DataGrid
+                        ItemsSource="{Binding Content.DefaultView}"
+                        Grid.Row="1"
+                        IsReadOnly="True"
+                        AutoGenerateColumns="True"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        CanUserReorderColumns="True"
+                        CanUserResizeRows="True"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="False"
+                        ColumnWidth="Auto"
+                        SelectionUnit="CellOrRowHeader"
+                        RowHeaderWidth="0"
+                        BorderBrush="Black"
+                        BorderThickness="1">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Background" Value="WhiteSmoke"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                    </DataGrid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
     </Grid>
 </Page>
