@@ -5,7 +5,7 @@
 //Author: John Nasitem
 //***********************************************************************************
 
-// TODO: add a label window, that acts similar to main window, shows totals per month and able to change years as well as show the total for everything
+
 
 using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Services.Actions;
@@ -92,6 +92,7 @@ namespace PayorLedger
             services.AddTransient<ViewPayorViewModel>();
             services.AddSingleton<ManagePayorsViewModel>();
             services.AddSingleton<ColumnsWindowViewModel>();
+            services.AddSingleton<LabelsWindowViewModel>();
 
             // Services
             services.AddSingleton<IUndoRedoService, UndoRedoService>();

@@ -55,6 +55,7 @@ namespace PayorLedger.ViewModels
         private List<MonthTotal> _totals = [];
         private readonly PayorWindowViewModel _payorWindowVM;
         private readonly ColumnsWindowViewModel _columnsWindowVM;
+        private readonly LabelsWindowViewModel _labelsWindowVM;
 
         // Services
         private readonly IUndoRedoService _undoRedoService;
@@ -77,11 +78,12 @@ namespace PayorLedger.ViewModels
         public ICommand CommentEdittedCommand { get; }
         public ICommand OpenPayorWindowCommand { get; }
         public ICommand OpenColumnsWindowCommand { get; }
+        public ICommand OpenLabelsWindowCommand { get; }
         #endregion
 
 
 
-        public MainPageViewModel(IUndoRedoService undoRedoService, IDatabaseService dbService, ILogger logger, PayorWindowViewModel payorWindowVM, ColumnsWindowViewModel columnsWindowVM)
+        public MainPageViewModel(IUndoRedoService undoRedoService, IDatabaseService dbService, ILogger logger, PayorWindowViewModel payorWindowVM, ColumnsWindowViewModel columnsWindowVM, LabelsWindowViewModel labelsWindowVM)
         {
             Year = DateTime.Now.Year;
             Page = new MainPage(this);
@@ -90,6 +92,7 @@ namespace PayorLedger.ViewModels
             _logger = logger;
             _payorWindowVM = payorWindowVM;
             _columnsWindowVM = columnsWindowVM;
+            _labelsWindowVM = labelsWindowVM;
 
             _undoRedoService.ChangeOccured += UndoRedoService_ChangeOccured;
 
@@ -106,6 +109,7 @@ namespace PayorLedger.ViewModels
             CommentEdittedCommand = new RelayCommand<CommentEditInfo>(ExecuteEditComment);
             OpenPayorWindowCommand = new RelayCommand(ExecuteOpenPayorWindow);
             OpenColumnsWindowCommand = new RelayCommand(ExecuteOpenColumnsWindow);
+            OpenLabelsWindowCommand = new RelayCommand(ExecuteOpenLabelsWindow);
 
             // Populate global vars
             GetDatabaseValues();
@@ -622,6 +626,13 @@ namespace PayorLedger.ViewModels
         private void ExecuteOpenColumnsWindow()
         {
             _columnsWindowVM.OpenWindow();
+        }
+
+
+
+        public void ExecuteOpenLabelsWindow()
+        {
+            _labelsWindowVM
         }
         #endregion
 

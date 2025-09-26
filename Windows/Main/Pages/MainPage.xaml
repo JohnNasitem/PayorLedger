@@ -37,6 +37,7 @@
             <MenuItem Header="View">
                 <MenuItem Header="Payors" x:Name="UI_Payors_Mni"/>
                 <MenuItem Header="Columns" x:Name="UI_Columns_Mni"/>
+                <MenuItem Header="Labels" x:Name="UI_Labels_Mni"/>
             </MenuItem>
         </Menu>
 
