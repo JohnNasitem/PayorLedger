@@ -57,6 +57,7 @@ namespace PayorLedger
 
             App.ServiceProvider.GetRequiredService<PayorWindowViewModel>().Exit();
             App.ServiceProvider.GetRequiredService<ColumnsWindowViewModel>().Exit();
+            App.ServiceProvider.GetRequiredService<LabelsWindowViewModel>().Exit();
             App.ServiceProvider.GetRequiredService<ILogger>().AddLog("User closed application", Logger.LogType.Action);
         }
     }
