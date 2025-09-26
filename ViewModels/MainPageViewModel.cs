@@ -632,7 +632,7 @@ namespace PayorLedger.ViewModels
 
         public void ExecuteOpenLabelsWindow()
         {
-            _labelsWindowVM
+            _labelsWindowVM.OpenWindow();
         }
         #endregion
 
