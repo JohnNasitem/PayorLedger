@@ -93,7 +93,9 @@ namespace PayorLedger.Models
 
         public enum RowLabel
         {
-            Depositor,
+            DepositorSpecial,
+            DepositorRegular,
+            DepositorOther,
             Borrower,
             ShareHolder,
             Other
