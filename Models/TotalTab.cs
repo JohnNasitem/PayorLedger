@@ -32,6 +32,9 @@ namespace PayorLedger.Models
         public TotalTab(RowEntry.RowLabel type)
         {
             Name = Enum.GetName(type)!;
+
+            if (Name.StartsWith("Depositor"))
+                Name = Name.Insert("Depositor".Length - 1, " ");
         }
     }
 }

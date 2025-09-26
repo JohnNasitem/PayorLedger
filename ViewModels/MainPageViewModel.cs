@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 namespace PayorLedger.ViewModels
 {
@@ -285,7 +286,13 @@ namespace PayorLedger.ViewModels
             {
                 DataRow row = tab.Content.NewRow();
 
-                row["Label"] = dataRow.Label.ToString();
+                string labelString = dataRow.Label.ToString();
+
+                if (labelString.StartsWith("Depositor"))
+                    labelString = labelString.Insert("Depositor".Length - 1, " ");
+
+                row["Label"] = labelString;
+
                 row["Payor"] = Payors.Find(p => p.PayorId == dataRow.PayorId)!.PayorName;
                 row["Date"] = dataRow.Date;
                 row["Or #"] = dataRow.OrNum;
