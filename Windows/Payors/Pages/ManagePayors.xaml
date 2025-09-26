@@ -36,7 +36,7 @@
             </Grid.RowDefinitions>
             <Button Grid.Row="0" Name="UI_AddPayor_Btn" Content="Add New Payor" Width="100" Height="30" Margin="10" Click="UI_AddPayor_Btn_Click"/>
             <Button Grid.Row="1" Name="UI_EditPayor_Btn" Content="Edit Payor" Width="100" Height="30" Margin="10" Click="UI_EditPayor_Btn_Click"/>
-            <Button Grid.Row="2" Name="UI_ViewPayorBalance_Btn" Content="Payor Balance" Width="100" Height="30" Margin="10" Click="UI_ViewPayorBalance_Btn_Click"/>
+            <Button Grid.Row="2" Name="UI_ViewPayorBalance_Btn" Content="Payor Report" Width="100" Height="30" Margin="10" Click="UI_ViewPayorBalance_Btn_Click"/>
             <Button Grid.Row="3" Name="UI_DeletePayor_Btn" Content="Delete Payor" Width="100" Height="30" Margin="10" Background="Red" Click="UI_DeletePayor_Btn_Click"/>
         </Grid>
     </Grid>
