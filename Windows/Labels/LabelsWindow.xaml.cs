@@ -27,14 +27,29 @@ namespace PayorLedger.Windows.Labels
             _vm = vm;
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
 
-        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
+        }
+
+
+
+        /// <summary>
+        /// Handles the window closing event to prevent it from closing and instead hide it.
+        /// </summary>
+        /// <param name="sender">Window</param>
+        /// <param name="e">Event args</param>
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // If main application is exiting, allow the window to close
+            if (_vm.ApplicationExit)
+                return;
+
+            // Prevent the window from closing
+            e.Cancel = true;
+            Hide();
         }
     }
 }
