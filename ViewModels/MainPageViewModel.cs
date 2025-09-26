@@ -630,6 +630,9 @@ namespace PayorLedger.ViewModels
 
 
 
+        /// <summary>
+        /// Open labels window
+        /// </summary>
         public void ExecuteOpenLabelsWindow()
         {
             _labelsWindowVM.OpenWindow();
