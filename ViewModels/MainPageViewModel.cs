@@ -289,7 +289,7 @@ namespace PayorLedger.ViewModels
                 string labelString = dataRow.Label.ToString();
 
                 if (labelString.StartsWith("Depositor"))
-                    labelString = labelString.Insert("Depositor".Length - 1, " ");
+                    labelString = labelString.Insert("Depositor".Length, " ");
 
                 row["Label"] = labelString;
 

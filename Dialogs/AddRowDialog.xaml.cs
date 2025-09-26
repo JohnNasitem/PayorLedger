@@ -97,7 +97,7 @@ namespace PayorLedger.Dialogs
             UI_RowPayor_Cmb.DisplayMemberPath = "Name";
 
             UI_RowLabel_Cmb.ItemsSource = Enum.GetValues<RowEntry.RowLabel>()
-                                                .Select(x => new DropDownItemLabel { Name = x.ToString().StartsWith("Depositor") ? x.ToString().Insert("Depositor".Length - 1, " ") : x.ToString(), Value = x })
+                                                .Select(x => new DropDownItemLabel { Name = x.ToString().StartsWith("Depositor") ? x.ToString().Insert("Depositor".Length, " ") : x.ToString(), Value = x })
                                                 .ToList();
             UI_RowLabel_Cmb.DisplayMemberPath = "Name";
         }

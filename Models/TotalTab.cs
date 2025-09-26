@@ -34,7 +34,7 @@ namespace PayorLedger.Models
             Name = Enum.GetName(type)!;
 
             if (Name.StartsWith("Depositor"))
-                Name = Name.Insert("Depositor".Length - 1, " ");
+                Name = Name.Insert("Depositor".Length, " ");
         }
     }
 }
