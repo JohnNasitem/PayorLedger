@@ -38,8 +38,10 @@ namespace PayorLedger.Windows.Payors.Pages
         /// </summary>
         public void RefreshTabs()
         {
+            int selectedIndex = UI_TotalTypes_Tbc.SelectedIndex;
             UI_TotalTypes_Tbc.ItemsSource = null;
             UI_TotalTypes_Tbc.ItemsSource = _vm.Tabs;
+            UI_TotalTypes_Tbc.SelectedIndex = selectedIndex == -1 ? 0 : selectedIndex;
         }
 
 

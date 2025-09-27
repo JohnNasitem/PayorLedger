@@ -9,6 +9,84 @@
         Loaded="Window_Loaded"
         Title="Labels" Height="450" Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid
+            Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                Text="Year:"
+                FontSize="14"
+                Margin="0, 0, 5, 0"/>
+            <Button
+                x:Name="UI_IncreaseYear_Btn"
+                Content="▲"
+                Grid.Column="1"
+                Click="YearEditButton_Click"/>
+            <TextBox
+                x:Name="UI_SelectYear_Tbx"
+                Grid.Column="2"
+                LostFocus="UI_SelectYear_Tbx_LostFocus"
+                KeyDown="UI_SelectYear_Tbx_KeyDown"/>
+            <Button
+                x:Name="UI_DecreaseYear_Btn"
+                Content="▼"
+                Grid.Column="3"
+                Click="YearEditButton_Click"/>
+        </Grid>
         
+        
+        <TabControl
+            Grid.Row="1"
+            x:Name="UI_LabelTypes_Tbc"
+            HorizontalAlignment="Stretch">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <DataGrid
+                        ItemsSource="{Binding Content.DefaultView}"
+                        IsReadOnly="True"
+                        AutoGenerateColumns="True"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        CanUserReorderColumns="True"
+                        CanUserResizeRows="True"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="False"
+                        ColumnWidth="Auto"
+                        SelectionUnit="CellOrRowHeader"
+                        RowHeaderWidth="0"
+                        BorderBrush="Black"
+                        BorderThickness="1">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Background" Value="WhiteSmoke"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                    </DataGrid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
     </Grid>
 </Window>

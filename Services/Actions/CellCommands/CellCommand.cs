@@ -25,6 +25,7 @@ namespace PayorLedger.Services.Actions.CellCommands
 
         protected static readonly MainPageViewModel _mainPageViewModel = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
         protected static readonly PayorWindowViewModel _payorWindowViewModel = App.ServiceProvider.GetRequiredService<PayorWindowViewModel>();
+        protected static readonly LabelsWindowViewModel _labelsWindowViewModel = App.ServiceProvider.GetRequiredService<LabelsWindowViewModel>();
 
 
 
@@ -87,6 +88,8 @@ namespace PayorLedger.Services.Actions.CellCommands
 
             if (_payorWindowViewModel.ActiveViewPayorViewModel != null && _payorWindowViewModel.ActiveViewPayorViewModel.Payor.PayorId == Cell.Row.PayorId)
                 _payorWindowViewModel.ActiveViewPayorViewModel.UpdateTable();
+
+            _labelsWindowViewModel.UpdateUI();
         }
 
 

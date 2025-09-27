@@ -25,6 +25,8 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
 
         protected static readonly MainPageViewModel _mainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
         protected static readonly ColumnsWindowViewModel _columnsWindowVM = App.ServiceProvider.GetRequiredService<ColumnsWindowViewModel>();
+        protected static readonly LabelsWindowViewModel _labelsWindowViewModel = App.ServiceProvider.GetRequiredService<LabelsWindowViewModel>();
+        protected static readonly PayorWindowViewModel _payorWindowViewModel = App.ServiceProvider.GetRequiredService<PayorWindowViewModel>();
 
 
 
@@ -96,6 +98,8 @@ namespace PayorLedger.Services.Actions.SubheaderCommands
         {
             _mainPageVM.UpdateUI();
             _columnsWindowVM.UpdateUI();
+            _labelsWindowViewModel.UpdateUI();
+            _payorWindowViewModel.ActiveViewPayorViewModel?.UpdateTable();
         }
 
 

@@ -7,6 +7,7 @@
 
 
 
+using Microsoft.Extensions.DependencyInjection;
 using PayorLedger.Models;
 using PayorLedger.Models.Columns;
 using PayorLedger.Services.Database;
@@ -47,18 +48,14 @@ namespace PayorLedger.ViewModels
 
 
 
-        private readonly MainPageViewModel _mainPageVM;
-        private readonly List<DataColumn> _staticColumns;
+        public MainPageViewModel MainPageVM { get; set; } = null!;
 
 
 
-        public ViewPayorViewModel(MainPageViewModel mainPageVM)
+        public ViewPayorViewModel()
         {
             SetPayorName = null;
             Page = new(this);
-            _mainPageVM = mainPageVM;
-
-            _staticColumns = GetColumnList();
 
             // Create the total tabs
             Tabs = new ObservableCollection<TotalTab>(
@@ -68,10 +65,14 @@ namespace PayorLedger.ViewModels
 
 
 
-        private List<DataColumn> GetColumnList()
+        /// <summary>
+        /// Get a new copy of the list of visible columns
+        /// </summary>
+        /// <returns>List of data columns</returns>
+        public List<DataColumn> GetColumnList(string newColName)
         {
             // Create columns
-            List<DataColumn> columns = MainPageViewModel.CreateColumns(new(_mainPageVM.Headers.Where(h => h.State != ChangeState.Removed)), true);
+            List<DataColumn> columns = MainPageViewModel.CreateColumns(new(MainPageVM.Headers.Where(h => h.State != ChangeState.Removed)), true);
 
             // Remove unused columns
             columns.RemoveAll(c => c.ColumnName == "Payor");
@@ -80,8 +81,8 @@ namespace PayorLedger.ViewModels
             columns.RemoveAll(c => c.ColumnName == "Date");
             columns.RemoveAll(c => c.ColumnName == "OR #");
 
-            // Add a new Year column at the start
-            DataColumn yearCol = new("Year") { AllowDBNull = false, ReadOnly = true };
+            // Add a new column at the start
+            DataColumn yearCol = new(newColName) { AllowDBNull = false, ReadOnly = true };
             yearCol.ExtendedProperties.Add("IsDefault", true);
             columns.Insert(0, yearCol);
 
@@ -109,6 +110,7 @@ namespace PayorLedger.ViewModels
         public void UpdateTable()
         {
             PopulateTable();
+            Page.RefreshTabs();
         }
 
 
@@ -120,7 +122,8 @@ namespace PayorLedger.ViewModels
         private Dictionary<int, List<CellEntryToRow>> GetEntries()
         {
             // Get entries from main page view model
-            return _mainPageVM.LedgerRows
+            return MainPageVM.LedgerRows
+                .Where(r => r.State != ChangeState.Removed)
                 .SelectMany(r => r.CellEntries)
                 .Where(ce => ce.Row.PayorId == Payor.PayorId && ce.State != ChangeState.Removed)
                 .GroupBy(ce => ce.Row.Year)
@@ -134,7 +137,11 @@ namespace PayorLedger.ViewModels
         /// </summary>
         private void PopulateTable()
         {
+            if (MainPageVM == null)
+                MainPageVM = App.ServiceProvider.GetRequiredService<MainPageViewModel>();
+
             Dictionary<int, List<CellEntryToRow>> entries = GetEntries();
+            List<DataColumn> columns = GetColumnList("Year");
 
             foreach (TotalTab tab in Tabs)
             {
@@ -142,11 +149,11 @@ namespace PayorLedger.ViewModels
                 tab.Content.Rows.Clear();
 
                 // Add Columns
-                foreach (DataColumn col in GetColumnList())
+                foreach (DataColumn col in GetColumnList("Year"))
                     tab.Content.Columns.Add(col);
 
                 // Add Rows
-                foreach (DataRow row in CreateRows(tab.Content, entries.SelectMany(r => r.Value)
+                foreach (DataRow row in CreateRows(columns, tab.Content, entries.SelectMany(r => r.Value)
                                                 .Where(ce => ce.Row.Label == tab.Label)
                                                 .GroupBy(ce => ce.Row.Year)
                                                 .ToDictionary(g => g.Key, g => g.ToList())))
@@ -160,15 +167,15 @@ namespace PayorLedger.ViewModels
         /// Create the rows for the table
         /// </summary>
         /// <returns>List of rows</returns>
-        private List<DataRow> CreateRows(DataTable table, Dictionary<int, List<CellEntryToRow>> entries)
+        private List<DataRow> CreateRows(List<DataColumn> columns, DataTable table, Dictionary<int, List<CellEntryToRow>> entries)
         {
             List<DataRow> rows = [];
             decimal payorTotal = 0;
             Dictionary<string, decimal> columnTotals = [];
-            List<SubheaderEntry> subheaders = _mainPageVM.GetSubheaders(_mainPageVM.Headers, true);
+            List<SubheaderEntry> subheaders = MainPageVM.GetSubheaders(MainPageVM.Headers, true);
 
             // Initialize column totals
-            foreach (DataColumn col in _staticColumns)
+            foreach (DataColumn col in columns)
                 columnTotals.Add(col.ColumnName, 0);
 
             // Create rows for each payor
@@ -178,7 +185,7 @@ namespace PayorLedger.ViewModels
                 decimal yearTotal = 0;
 
                 // Initialize the row cells
-                foreach (DataColumn col in _staticColumns)
+                foreach (DataColumn col in columns)
                     row[col.ColumnName] = 0;
                 row["Year"] = year;
 
@@ -188,7 +195,7 @@ namespace PayorLedger.ViewModels
                     SubheaderEntry subheader = subheaders.FirstOrDefault(s => s.Id == entry.SubheaderId)!;
 
                     string colName = $"{subheader.Header.Name}\n{subheader.Name}";
-                    row[colName] = decimal.Parse(row[colName].ToString()!) + entry.Amount;
+                    row[colName] = entry.Amount;
                     yearTotal += entry.Amount;
                     columnTotals[colName] += entry.Amount;
                 }
@@ -202,7 +209,7 @@ namespace PayorLedger.ViewModels
 
             // Add total row
             DataRow totalRow = table.NewRow();
-            foreach (DataColumn col in _staticColumns)
+            foreach (DataColumn col in columns)
             {
                 if (col.ExtendedProperties.ContainsKey("IsDefault"))
                     continue;
